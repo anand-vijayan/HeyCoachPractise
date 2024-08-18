@@ -1,11 +1,96 @@
 package org.helpers;
 
+import org.dto.BubbleSortData;
+
 import java.util.*;
 
 public class Sorting {
-    public static int[] MergeSort(int[] inputArr) {
+    public static void MergeSort(ArrayList<Integer> arr, int leftIndex, int middleIndex, int rightIndex) {
 
-        return inputArr;
+        int[] inputArr = arr.stream().mapToInt(i->i).toArray();
+
+        //Calculate size of two temporary arrays which need to be merged and create them
+        int sizeOfLeftArr = middleIndex - leftIndex + 1;
+        int sizeOfRightArr = rightIndex - middleIndex;
+        int[] leftArray = new int[sizeOfLeftArr];
+        int[] rightArray = new int[sizeOfRightArr];
+
+        //Fill data
+        for(int i = 0; i < sizeOfLeftArr; i++) {
+            leftArray[i] = inputArr[leftIndex + i];
+        }
+        for(int j = 0; j < sizeOfRightArr; j++) {
+            rightArray[j] = inputArr[middleIndex + 1 + j];
+        }
+
+        //Merge the arrays with sorting (if required)
+        int i = 0, j = 0, k = leftIndex;
+        while(i < sizeOfLeftArr && j < sizeOfRightArr) {
+            if(leftArray[i] <= rightArray[j]) {
+                inputArr[k] = leftArray[i];
+                i++;
+            } else {
+                inputArr[k] = rightArray[j];
+                j++;
+            }
+            k++;
+        }
+
+        //Add elements which doesn't require sorting
+        while(i < sizeOfLeftArr) {
+            inputArr[k] = leftArray[i];
+            i++;
+            k++;
+        }
+
+        while(j < sizeOfRightArr) {
+            inputArr[k] = rightArray[j];
+            j++;
+            k++;
+        }
+
+        arr.clear();
+        for(int a : inputArr) {
+            arr.add(a);
+        }
+    }
+
+    public static int[] MergeSort(int[] arr1, int[] arr2) {
+        int[] result = new int[arr1.length + arr2.length];
+        int i = 0, j = 0, k = 0;
+
+        while (i < arr1.length && j < arr2.length) {
+            if(arr1[i] < arr2[j]){
+                result[k] = arr1[i];
+                i++;
+                k++;
+            } else if(arr1[i] > arr2[j]) {
+                result[k] = arr2[j];
+                j++;
+                k++;
+            } else {
+                result[k] = arr1[i];
+                k++;
+                i++;
+                result[k] = arr2[j];
+                k++;
+                j++;
+            }
+        }
+
+        while(i < arr1.length) {
+            result[k] = arr1[i];
+            i++;
+            k++;
+        }
+
+        while(j < arr2.length) {
+            result[k] = arr2[j];
+            j++;
+            k++;
+        }
+
+        return result;
     }
 
     public static int[] BubbleSort(int[] arr) {
@@ -24,6 +109,28 @@ public class Sorting {
             if(!swapped) break;
         }
         return arr;
+    }
+
+    public static BubbleSortData BubbleSortWithNumberOfSwaps(int[] arr) {
+        BubbleSortData output = new BubbleSortData();
+        boolean swapped = false;
+        int n = arr.length, swapCount = 0;
+        for(int i = 0; i < n - 1; i++) {
+            swapped = false;
+            for(int j = 0; j < n - i - 1; j++) {
+                if(arr[j] > arr[j+1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j+1];
+                    arr[j+1] = temp;
+                    swapped = true;
+                    swapCount++;
+                }
+            }
+            if(!swapped) break;
+        }
+        output.SortedArray = arr;
+        output.NumberOfSwaps = swapCount;
+        return output;
     }
 
     public static void BucketSortString(String textToSort) {
@@ -88,5 +195,47 @@ public class Sorting {
         }
 
         System.out.println(output);
+    }
+
+    /**
+     * Compare two words with case sensitivity.
+     * @param word1 word1 without space
+     * @param word2 word2 without space
+     * @return 0=if both same, 1 or 2 = indicates the first word based on alphabetical order
+     */
+    public static int CompareWords(String word1, String word2) {
+        char[] arr1 = word1.toCharArray();
+        char[] arr2 = word2.toCharArray();
+        int i = 0, j = 0;
+        boolean sameWords = false;
+        int firstWord = 0;
+
+        while(i < arr1.length && j < arr2.length) {
+            if(arr1[i] == arr2[j]) {
+                i++;
+                j++;
+                sameWords = true;
+            } else if(arr1[i] < arr2[j]) {
+                firstWord = 1;
+                sameWords = false;
+                break;
+            } else {
+                firstWord = 2;
+                sameWords = false;
+                break;
+            }
+        }
+
+        if(!sameWords) return firstWord;
+
+        if(sameWords && i == arr1.length) {
+            firstWord = 1;
+        }
+
+        if(sameWords && j == arr2.length) {
+            firstWord = 2;
+        }
+
+        return firstWord;
     }
 }
