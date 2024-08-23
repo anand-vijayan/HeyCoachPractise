@@ -18,8 +18,8 @@ public class Common {
         System.out.println();
     }
 
-    public static void PrintArray(List<String> arr) {
-        for(String i : arr) {
+    public static <T> void PrintArray(List<T> arr) {
+        for(T i : arr) {
             System.out.print(i + " ");
         }
         System.out.println();
