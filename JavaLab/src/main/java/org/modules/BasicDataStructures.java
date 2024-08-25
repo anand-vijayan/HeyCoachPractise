@@ -530,6 +530,36 @@ public class BasicDataStructures {
         return result;
     }
 
+    public static int MinAbsoluteDifference(List<Integer> nums, int x) {
+        int minDiff = Integer.MAX_VALUE;
+        TreeSet<Integer> setValues = new TreeSet<>();
+        int n = nums.size();
+
+        for(int i = 0; i < n; i++) {
+            if(i >= x) {
+                int num = nums.get(i);
+
+                //Check lower bound
+                Integer lower = setValues.floor(num);
+                if(lower != null) {
+                    minDiff = Math.min(minDiff, Math.abs(num - lower));
+                }
+
+                //Check upper bound
+                Integer upper = setValues.ceiling(num);
+                if(upper != null) {
+                    minDiff = Math.min(minDiff, Math.abs(num - upper));
+                }
+
+                setValues.remove(nums.get(i - x));
+            }
+
+            setValues.add(nums.get(i));
+        }
+
+        return minDiff;
+    }
+
     private static int ComputeSum(int[] nums, int divisor) {
         int sum = 0;
         for (int num : nums) {
