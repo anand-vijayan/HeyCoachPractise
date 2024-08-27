@@ -1,9 +1,11 @@
 package org.modules;
 
+import org.dto.Node;
+import org.dto.Pair;
+
 import java.util.*;
 
 import static org.helpers.Common.*;
-import static org.helpers.Searching.*;
 import static org.helpers.Sorting.*;
 
 public class BasicDataStructures {
@@ -255,7 +257,7 @@ public class BasicDataStructures {
         }
 
         // Create the LPS (Longest Prefix Suffix) array
-        int[] lps = createLPSArray(pattern);
+        int[] lps = CreateLPSArray(pattern);
 
         int i = 0; // Index for text
         int j = 0; // Index for pattern
@@ -342,7 +344,7 @@ public class BasicDataStructures {
             if(c != Character.MIN_VALUE && temp.size() < 3) {
                 temp.add(c);
             } else if(temp.size() == 3) {
-                if(isVowel(c)) {
+                if(IsVowel(c)) {
                     String type1Str = "";
                     int i = 0;
                     while(i < 2) {
@@ -353,7 +355,7 @@ public class BasicDataStructures {
                     temp.clear();
                     temp.add(tempCarryForward);
                     syllables.add(type1Str);
-                } else if(c != Character.MIN_VALUE && !isVowel(c)) {
+                } else if(c != Character.MIN_VALUE && !IsVowel(c)) {
                     String type2Str = "";
                     int j = 0;
                     while(j < 3) {
@@ -532,32 +534,351 @@ public class BasicDataStructures {
 
     public static int MinAbsoluteDifference(List<Integer> nums, int x) {
         int minDiff = Integer.MAX_VALUE;
-        TreeSet<Integer> setValues = new TreeSet<>();
-        int n = nums.size();
 
-        for(int i = 0; i < n; i++) {
-            if(i >= x) {
-                int num = nums.get(i);
-
-                //Check lower bound
-                Integer lower = setValues.floor(num);
-                if(lower != null) {
-                    minDiff = Math.min(minDiff, Math.abs(num - lower));
-                }
-
-                //Check upper bound
-                Integer upper = setValues.ceiling(num);
-                if(upper != null) {
-                    minDiff = Math.min(minDiff, Math.abs(num - upper));
-                }
-
-                setValues.remove(nums.get(i - x));
+        for (int i = 0; i < nums.size(); i++) {
+            if(i + x < nums.size()) {
+                minDiff = Math.min(minDiff, Math.abs(nums.get(i) - nums.get(i + x)));
             }
-
-            setValues.add(nums.get(i));
         }
 
         return minDiff;
+    }
+
+    public static ArrayList<Integer> NextLeastGreatest(int n, int[] arr) {
+        ArrayList<Integer> result = new ArrayList<>();
+        TreeSet<Integer> nextLeastGreatest = new TreeSet<>();
+        for(int i = 0; i < n; i ++) {
+            for(int j = i + 1; j < n; j++) {
+                if(arr[j] > arr[i]) {
+                    nextLeastGreatest.add(arr[j]);
+                }
+            }
+            //Now check if there are greatest of arr[i] in the set, if found get minimum value from set and enter for arr[i] else enter -1
+            if(nextLeastGreatest.isEmpty()) {
+                result.add(-1);
+            } else {
+                result.add(nextLeastGreatest.first());
+                nextLeastGreatest.clear();
+            }
+        }
+        return result;
+    }
+
+    public static void UnionAndIntersection(int[] arr1, int[] arr2, int n, int m) {
+        TreeSet<Integer> arr1Set = new TreeSet<>();
+        TreeSet<Integer> arr2Set = new TreeSet<>();
+        n = arr1.length;
+        m = arr2.length;
+
+        //Get all value from arr1, TreeSet will not take duplicate value
+        for(int i = 0; i < n; i++) {
+            arr1Set.add(arr1[i]);
+        }
+
+        //Get all value from arr2, TreeSet will not take duplicate value
+        for(int i = 0; i < m; i++) {
+            arr2Set.add(arr2[i]);
+        }
+
+        //Now, union both
+        TreeSet<Integer> unionSet = new TreeSet<>(arr1Set);
+        unionSet.addAll(arr2Set);
+
+        //Then find intersection
+        TreeSet<Integer> intersectionSet = new TreeSet<>(arr1Set);
+        intersectionSet.retainAll(arr2Set);
+
+        //Print answers
+        PrintArray(Arrays.asList(unionSet.toArray()));
+        PrintArray(Arrays.asList(intersectionSet.toArray()));
+    }
+
+    public static void UniquePermutations(String s) {
+        Set<String> permutations = new TreeSet<>();
+
+        // Generate permutations
+        GeneratePermutations(s, "", permutations);
+
+        // Print each permutation
+        for (String permutation : permutations) {
+            System.out.println(permutation);
+        }
+    }
+
+    public static void JetFighterCaptain(int[] a, int n, int k) {
+        //Find number of segments, if it is 1 or any odd then it is not valid message so "Wait". Else continue.
+        int numberOfSegments = n/k, start = 0, missingPositiveNumbers = 0;
+        boolean areSegmentsSame = false;
+        List<Set<Integer>> segments = new ArrayList<>();
+        if(numberOfSegments == 1) {
+            System.out.println("Wait");
+        } else{
+            //Create segments of equal length
+            for(int i = 1; i <= numberOfSegments; i++) {
+                segments.add(new TreeSet<>(Arrays.asList(GetSegment(a,start,k))));
+                start += k;
+            }
+
+            //Check if all sets are same
+            for(int i = 0; i < segments.size() - 1; i++) {
+                if(!segments.get(i).containsAll(segments.get(i+1))) {
+                    areSegmentsSame = false;
+                    break;
+                } else {
+                    areSegmentsSame = true;
+                }
+            }
+
+            if(areSegmentsSame) {
+                //Check if any positive number is missing in the segments
+                for(Set<Integer> segment : segments) {
+                    missingPositiveNumbers += CheckMissingPositiveNumber(segment);
+                }
+                //If number of segments and missing positive numbers are same then "Attack" else "Wait"
+                System.out.println((numberOfSegments == missingPositiveNumbers) ? "Attack" : "Wait");
+            } else {
+                System.out.println("Wait");
+            }
+        }
+    }
+
+    public static int MostFrequentElement(int[] arr) {
+        int highestFrequency = 0, highestRepeatedElement = Integer.MAX_VALUE;
+        Map<Integer, Integer> elementFrequency = new HashMap<>();
+
+        for(int i : arr) {
+            elementFrequency.put(i, elementFrequency.getOrDefault(i, 0) + 1);
+        }
+
+        for(Map.Entry<Integer, Integer> element : elementFrequency.entrySet()) {
+            int elementVal = element.getKey();
+            int elementCount = element.getValue();
+
+            if(elementCount > highestFrequency ||
+                    elementCount == highestFrequency && elementVal < highestRepeatedElement) {
+                highestFrequency = elementCount;
+                highestRepeatedElement = elementVal;
+            }
+        }
+
+        return highestRepeatedElement;
+    }
+
+    public static Map<Integer, Integer> HashMapImplementation(int[] arr, int n) {
+        Map<Integer, Integer> result = new HashMap<>();
+        //Since hashMap store data as sorted (ascending), we don't need a sort operation
+        //arr = BubbleSort(arr);
+        for(int i : arr) {
+            result.put(i, result.getOrDefault(i, 0) + 1);
+        }
+        return result;
+    }
+
+    public static String BerloggingWinner(List<Pair<String, Integer>> input, int N) {
+        int highestScore = Integer.MIN_VALUE;
+        String winner = "";
+        Map<String, Integer> scoreSheet = new HashMap<>();
+        for(Pair<String, Integer> candidateScore : input) {
+            scoreSheet.put(candidateScore.getKey(), scoreSheet.getOrDefault(candidateScore.getKey(), 0) + candidateScore.getValue());
+        }
+
+        for(Map.Entry<String, Integer> score : scoreSheet.entrySet()) {
+            int candidateFinalScore = score.getValue();
+            if(candidateFinalScore > highestScore) {
+                highestScore = candidateFinalScore;
+                winner = score.getKey();
+            }
+        }
+
+        //Check if there is more than one candidate with same score
+        int countOfHighestScore = 0;
+        for(int val : scoreSheet.values()) {
+            if(val == highestScore) countOfHighestScore++;
+        }
+        //There is only one candidate, and we captured it in 'winner', so return it.
+        if(countOfHighestScore == 1) {
+            return winner;
+        } else {
+            //There are more than one with same score.
+            //Find the first person got into that score
+            Map<String, Integer> duplicateScoreSheet = new HashMap<>();
+            for(Pair<String, Integer> candidateScore : input) {
+                duplicateScoreSheet.put(
+                        candidateScore.getKey(),
+                        duplicateScoreSheet.getOrDefault(candidateScore.getKey(), 0) + candidateScore.getValue());
+
+                if(duplicateScoreSheet.get(candidateScore.getKey()) == highestScore) {
+                    return candidateScore.getKey();
+                }
+            }
+        }
+
+        return winner;
+    }
+
+    public static int NumberOfSubArraysWithGivenSum(int[] arr, int n, int sum) {
+        Map<Integer, Integer> sumFrequencyMap = new HashMap<>();
+        int curr_sum = 0;
+        int count = 0;
+
+        // Initialize the map with sum 0 (important for subarrays starting from index 0)
+        sumFrequencyMap.put(0, 1);
+
+        for (int num : arr) {
+            curr_sum += num;
+
+            // Check if there is a subarray (ending at the current index) with sum k
+            if (sumFrequencyMap.containsKey(curr_sum - sum)) {
+                count += sumFrequencyMap.get(curr_sum - sum);
+            }
+
+            // Update the frequency of the current sum in the map
+            sumFrequencyMap.put(curr_sum, sumFrequencyMap.getOrDefault(curr_sum, 0) + 1);
+        }
+
+        return count;
+    }
+
+    public static int MaxNumberOfHappiestGuests(int k, List<List<Integer>> nums, int n, int m) {
+        int totalFruits = n * m, happyGuests = 0;
+
+        //Get the fruit list
+        Map<Integer, Integer> availableFruits = new HashMap<>();
+        for (int i = 1; i <= totalFruits; i++) {
+            availableFruits.put(i, 0);
+        }
+
+        //Assign the choices
+        int guestId = 1;
+        for(List<Integer> choice : nums) {
+            do {
+                int maxChoice = Collections.max(choice);
+                if(availableFruits.get(maxChoice) != null) {
+                    availableFruits.put(maxChoice, guestId);
+                    break;
+                }
+                choice.remove(maxChoice);
+            } while(!choice.isEmpty());
+            guestId++;
+        }
+
+        for(Map.Entry<Integer, Integer> availableFruit : availableFruits.entrySet()) {
+            if(availableFruit.getValue() > 0) {
+                happyGuests++;
+            }
+        }
+
+        return happyGuests;
+    }
+
+    public static int MinCost(int[] nums) {
+        int n = nums.length;
+        int minCost = Integer.MAX_VALUE;
+
+        // Iterate over all possible ways to split the array into 3 subarrays
+        for (int i = 1; i < n - 1; i++) {   // `i` is the end of the first subarray
+            for (int j = i + 1; j < n; j++) { // `j` is the end of the second subarray
+                int cost = nums[0] + nums[i] + nums[j];
+                minCost = Math.min(minCost, cost);
+            }
+        }
+
+        return minCost;
+    }
+
+    public static void SplitCircularLinkedList(Node head, Node[] result) {
+        if (head == null || head.next == head) {
+            result[0] = head;
+            result[1] = null;
+            return;
+        }
+
+        Node head1 = null, head2 = null;
+        Node current1 = null, current2 = null;
+        Node current = head;
+        boolean addToFirstList = true;
+
+        do {
+            if (addToFirstList) {
+                if (head1 == null) {
+                    head1 = current;
+                    current1 = head1;
+                } else {
+                    current1.next = current;
+                    current1 = current1.next;
+                }
+            } else {
+                if (head2 == null) {
+                    head2 = current;
+                    current2 = head2;
+                } else {
+                    current2.next = current;
+                    current2 = current2.next;
+                }
+            }
+
+            addToFirstList = !addToFirstList;
+            current = current.next;
+        } while (current != head);
+
+        // Completing the circular nature
+        current1.next = head1;
+        current2.next = head2;
+
+        result[0] = head1;
+        result[1] = head2;
+    }
+
+    public static int MaximumGap(int[] arr){
+        int n = arr.length;
+        if (n < 2) {
+            return 0;
+        }
+
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+
+        // Find the minimum and maximum values in the array
+        for (int num : arr) {
+            min = Math.min(min, num);
+            max = Math.max(max, num);
+        }
+
+        if (min == max) {
+            return 0; // All elements are the same
+        }
+
+        // Calculate the bucket size and number of buckets
+        int bucketSize = Math.max(1, (max - min) / (n - 1));
+        int bucketCount = (max - min) / bucketSize + 1;
+
+        // Create buckets
+        int[] bucketMin = new int[bucketCount];
+        int[] bucketMax = new int[bucketCount];
+        Arrays.fill(bucketMin, Integer.MAX_VALUE);
+        Arrays.fill(bucketMax, Integer.MIN_VALUE);
+
+        // Place each number in a bucket
+        for (int num : arr) {
+            int bucketIndex = (num - min) / bucketSize;
+            bucketMin[bucketIndex] = Math.min(bucketMin[bucketIndex], num);
+            bucketMax[bucketIndex] = Math.max(bucketMax[bucketIndex], num);
+        }
+
+        // Find the maximum gap between successive buckets
+        int maxGap = 0;
+        int previousMax = bucketMax[0];
+
+        for (int i = 1; i < bucketCount; i++) {
+            if (bucketMin[i] == Integer.MAX_VALUE) {
+                // Skip empty buckets
+                continue;
+            }
+            maxGap = Math.max(maxGap, bucketMin[i] - previousMax);
+            previousMax = bucketMax[i];
+        }
+
+        return maxGap;
     }
 
     private static int ComputeSum(int[] nums, int divisor) {
@@ -592,7 +913,7 @@ public class BasicDataStructures {
         return (maxRange - allowedRange + 1) * (maxRange - allowedRange + 2) / 2;
     }
 
-    private static int[] createLPSArray(String pattern) {
+    private static int[] CreateLPSArray(String pattern) {
         int m = pattern.length();
         int[] lps = new int[m];
         int length = 0; // Length of the previous longest prefix suffix
@@ -618,7 +939,40 @@ public class BasicDataStructures {
         return lps;
     }
 
-    private static boolean isVowel(char c) {
+    private static boolean IsVowel(char c) {
         return "aeiou".indexOf(c) != -1;
+    }
+
+    private static void GeneratePermutations(String str, String prefix, Set<String> result) {
+        if (str.isEmpty()) {
+            result.add(prefix);
+        } else {
+            for (int i = 0; i < str.length(); i++) {
+                String remaining = str.substring(0, i) + str.substring(i + 1);
+                GeneratePermutations(remaining, prefix + str.charAt(i), result);
+            }
+        }
+    }
+
+    private static Integer[] GetSegment(int[] arr, int start, int len) {
+        Integer[] result = new Integer[len];
+        int j = 0;
+        for(int i = start; i < start + len; i++) {
+            result[j] = arr[i];
+            j++;
+        }
+        return result;
+    }
+
+    private static int CheckMissingPositiveNumber(Set<Integer> segment) {
+        //Check for missing number
+        int missingNumber = 0;
+        for (int num : segment) {
+            if (num <= 0) {
+                missingNumber++;
+            }
+        }
+
+        return missingNumber;
     }
 }

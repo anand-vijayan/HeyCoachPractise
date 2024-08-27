@@ -111,6 +111,33 @@ public class Sorting {
         return arr;
     }
 
+    public static int[] BubbleSort(int[] arr, boolean invertSortToDescending) {
+        boolean swapped = false;
+        int n = arr.length;
+        for(int i = 0; i < n - 1; i++) {
+            swapped = false;
+            for(int j = 0; j < n - i - 1; j++) {
+                if(invertSortToDescending) {
+                    if(arr[j] < arr[j+1]) {
+                        int temp = arr[j];
+                        arr[j] = arr[j+1];
+                        arr[j+1] = temp;
+                        swapped = true;
+                    }
+                } else {
+                    if(arr[j] > arr[j+1]) {
+                        int temp = arr[j];
+                        arr[j] = arr[j+1];
+                        arr[j+1] = temp;
+                        swapped = true;
+                    }
+                }
+            }
+            if(!swapped) break;
+        }
+        return arr;
+    }
+
     public static BubbleSortData BubbleSortWithNumberOfSwaps(int[] arr) {
         BubbleSortData output = new BubbleSortData();
         boolean swapped = false;
