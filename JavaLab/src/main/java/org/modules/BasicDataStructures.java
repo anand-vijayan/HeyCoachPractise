@@ -2,6 +2,7 @@ package org.modules;
 
 import org.dto.Node;
 import org.dto.Pair;
+import org.dto.PetrolPump;
 
 import java.util.*;
 
@@ -879,6 +880,130 @@ public class BasicDataStructures {
         }
 
         return maxGap;
+    }
+
+    public static Queue<Integer> QueueImplementation(Vector<Integer> nums) {
+        Queue<Integer> queue = new LinkedList<>();
+        for (int num : nums) {
+            queue.add(num);
+        }
+        return queue;
+    }
+
+    public static Queue<Integer> QueueFunctions(Vector<Integer> v, int k) {
+        Queue<Integer> dummyQueue = new LinkedList<>();
+
+        //1. Implement a queue with integers from the given array.
+        for(int num : v) {
+            dummyQueue.add(num);
+        }
+
+        //2: Remove first element from the queue
+        dummyQueue.remove();
+
+        //3. Print the first element of queue.
+        System.out.println(dummyQueue.element());
+
+        //4.Find if the integer k exists in the queue.
+        System.out.println(dummyQueue.contains(k) ? "Yes" : "No");
+
+        //5. Finally return the queue.
+        return dummyQueue;
+    }
+
+    public static Queue<Integer> ReverseKQueueElements(Queue<Integer> q, int k) {
+        if(q == null || q.isEmpty() || k > q.size() || k <= 0) {
+            return q;
+        }
+
+        Stack<Integer> dummyStack = new Stack<>();
+
+        //Push first 'k' elements to a stack
+        for(int i = 0; i < k; i++) {
+            dummyStack.push(q.poll());
+        }
+
+        //Add it back to queue from stack
+        while (!dummyStack.isEmpty()) {
+            q.add(dummyStack.pop());
+        }
+
+        //Add the remaining elements in the queue (after 'k' elements)
+        for(int i = 0; i < q.size() - k; i++) {
+            q.add(q.poll());
+        }
+
+        return q;
+    }
+
+    public static int TourOfAllPetrolPump(PetrolPump[] p, int n) {
+        int totalPetrol = 0;
+        int totalDistance = 0;
+        int start = 0;
+        int currentPetrol = 0;
+
+        for (int i = 0; i < p.length; i++) {
+            totalPetrol += p[i].petrol;
+            totalDistance += p[i].distance;
+            currentPetrol += p[i].petrol - p[i].distance;
+
+            // If current petrol in the truck becomes negative, the starting point can't be this or any pump before this.
+            if (currentPetrol < 0) {
+                start = i + 1;
+                currentPetrol = 0;
+            }
+        }
+
+        // If total petrol is less than total distance, then a tour is not possible.
+        if (totalPetrol < totalDistance) {
+            return -1;
+        }
+
+        return start;
+    }
+
+    public static String FirstNonRepeating(String str) {
+        StringBuilder outputStr = new StringBuilder();
+        HashMap<Character, Integer> freqMap = new HashMap<>();
+        Queue<Character> queue = new LinkedList<>();
+
+        for (char ch : str.toCharArray()) {
+            // Add character to the queue and update its frequency
+            queue.add(ch);
+            freqMap.put(ch, freqMap.getOrDefault(ch, 0) + 1);
+
+            // Remove characters from the queue that are repeating
+            while (!queue.isEmpty() && freqMap.get(queue.peek()) > 1) {
+                queue.poll();
+            }
+
+            // If queue is not empty, append the first non-repeating character
+            if (!queue.isEmpty()) {
+                outputStr.append(queue.peek());
+            } else {
+                outputStr.append('X');
+            }
+        }
+
+        return outputStr.toString();
+    }
+
+    public static boolean CalculateTotalTrappedWorkers(Vector<Integer> in, Vector<Integer> out) {
+        Stack<Integer> stack = new Stack<>();
+        int j = 0;
+
+        for (Integer integer : in) {
+            stack.push(integer);
+
+            // While the stack is not empty and the top of the stack matches the OUT sequence
+            while (!stack.isEmpty() && Objects.equals(stack.peek(), out.get(j))) {
+                stack.pop();
+                j++;
+            }
+        }
+
+        // If stack is empty, it means all workers came out safely
+        return !stack.isEmpty();
     }
 
     private static int ComputeSum(int[] nums, int divisor) {

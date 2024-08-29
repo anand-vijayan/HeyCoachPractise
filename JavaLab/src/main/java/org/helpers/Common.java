@@ -4,6 +4,7 @@ import org.dto.Node;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 public class Common {
     public static void PrintArray(int[] arr) {
@@ -25,6 +26,14 @@ public class Common {
         StringBuilder output = new StringBuilder();
         for(T i : arr) {
             output.append(i).append(" ");
+        }
+        System.out.println(output.toString().trim());
+    }
+
+    public static <T> void PrintArray(Queue<T> queue) {
+        StringBuilder output = new StringBuilder();
+        while(!queue.isEmpty()) {
+            output.append(queue.poll()).append(" ");
         }
         System.out.println(output.toString().trim());
     }
