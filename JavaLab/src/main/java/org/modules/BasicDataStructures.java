@@ -990,20 +990,135 @@ public class BasicDataStructures {
 
     public static boolean CalculateTotalTrappedWorkers(Vector<Integer> in, Vector<Integer> out) {
         Stack<Integer> stack = new Stack<>();
-        int j = 0;
+        int j = 0, trappedWorkers = 0;
 
-        for (Integer integer : in) {
-            stack.push(integer);
 
-            // While the stack is not empty and the top of the stack matches the OUT sequence
-            while (!stack.isEmpty() && Objects.equals(stack.peek(), out.get(j))) {
-                stack.pop();
-                j++;
+        //Insert the in sequence to stack
+        for(Integer i : in) {
+            stack.push(i);
+        }
+
+        //Check if the stack.pop order and out sequence are same, if not that worker will be stuck
+        while (!stack.isEmpty()) {
+            if(stack.pop() != out.get(j)) {
+                trappedWorkers++;
+            }
+            j++;
+        }
+
+        // If number of trapped workers are zero then return false
+        return trappedWorkers != 0;
+    }
+
+    public static long GetMaxArea(long[] arr, int n) {
+        Stack<Integer> stack = new Stack<>();
+        long maxArea = 0;
+
+        for (int i = 0; i < n; i++) {
+            // While the current height is less than the height of the bar at the top of the stack
+            while (!stack.isEmpty() && arr[i] < arr[stack.peek()]) {
+                long height = arr[stack.pop()];
+                long width = stack.isEmpty() ? i : i - stack.peek() - 1;
+                maxArea = Math.max(maxArea, height * width);
+            }
+            stack.push(i);
+        }
+
+        // Calculate area for the remaining bars in stack
+        while (!stack.isEmpty()) {
+            long height = arr[stack.pop()];
+            long width = stack.isEmpty() ? n : n - stack.peek() - 1;
+            maxArea = Math.max(maxArea, height * width);
+        }
+
+        return maxArea;
+    }
+
+    public static boolean Find132pattern(int[] nums) {
+        if (nums == null || nums.length < 3) {
+            return false;
+        }
+
+        int n = nums.length;
+        Stack<Integer> stack = new Stack<>();
+        int third = Integer.MIN_VALUE;  // this represents the potential `nums[k]`
+
+        // Traverse the array from the end to the start
+        for (int i = n - 1; i >= 0; i--) {
+            if (nums[i] < third) {
+                return true;  // Found the `nums[i] < nums[k] < nums[j]` pattern
+            }
+            while (!stack.isEmpty() && nums[i] > stack.peek()) {
+                third = stack.pop();  // Pop from stack to update `third` (potential `nums[k]`)
+            }
+            stack.push(nums[i]);  // Push the current number as a potential `nums[j]`
+        }
+
+        return false;
+    }
+
+    public static int CountTheOperations(String s) {
+        //Length is odd then not possible to balance
+        int n = s.length();
+        if(n%2 != 0) return -1;
+
+        // Initialize counters
+        int openCount = 0;
+        int closeCount = 0;
+
+        // Traverse the string to count misplacements
+        for (int i = 0; i < n; i++) {
+            char ch = s.charAt(i);
+            if (ch == '{') {
+                openCount++;
+            } else {
+                if (openCount > 0) {
+                    openCount--;  // Balanced with an unmatched opening bracket
+                } else {
+                    closeCount++;  // Unmatched closing bracket
+                }
             }
         }
 
-        // If stack is empty, it means all workers came out safely
-        return !stack.isEmpty();
+        // Calculate minimum reversals needed
+        return (openCount + 1) / 2 + (closeCount + 1) / 2;
+    }
+
+    public static int FindMaxDiff(int[] arr) {
+        int n = arr.length;
+        int[] leftSmaller = new int[n];
+        int[] rightSmaller = new int[n];
+
+        // Find nearest smaller elements on the left
+        Stack<Integer> stack = new Stack<>();
+        for (int i = 0; i < n; i++) {
+            while (!stack.isEmpty() && stack.peek() >= arr[i]) {
+                stack.pop();
+            }
+            leftSmaller[i] = stack.isEmpty() ? 0 : stack.peek();
+            stack.push(arr[i]);
+        }
+
+        // Clear stack to reuse for finding the nearest smaller elements on the right
+        stack.clear();
+
+        // Find nearest smaller elements on the right
+        for (int i = n - 1; i >= 0; i--) {
+            while (!stack.isEmpty() && stack.peek() >= arr[i]) {
+                stack.pop();
+            }
+            rightSmaller[i] = stack.isEmpty() ? 0 : stack.peek();
+            stack.push(arr[i]);
+        }
+
+        // Calculate the maximum absolute difference
+        int maxAbsDiff = 0;
+        for (int i = 0; i < n; i++) {
+            int absDiff = Math.abs(leftSmaller[i] - rightSmaller[i]);
+            maxAbsDiff = Math.max(maxAbsDiff, absDiff);
+        }
+
+        return maxAbsDiff;
     }
 
     private static int ComputeSum(int[] nums, int divisor) {
