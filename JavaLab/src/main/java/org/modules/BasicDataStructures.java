@@ -1081,6 +1081,116 @@ public class BasicDataStructures {
         return (openCount + 1) / 2 + (closeCount + 1) / 2;
     }
 
+    public static void KingsLand(ArrayList<Integer> landValues) {
+        int sum = 0;
+        ArrayList<Integer> result = new ArrayList<>();
+        //Traverse through input
+        for(int i = 0; i < landValues.size(); i++) {
+            //Have a stack to hold land with my value and less than it
+            Stack<Integer> myLand = new Stack<>();
+            myLand.push(landValues.get(i));
+
+            //Traverse to left
+            for(int j = i - 1; j >= 0; j--) {
+                //Compare with my land add if it is equal or less than the value of my land
+                if(landValues.get(j) <= landValues.get(i)) {
+                    myLand.push(landValues.get(j));
+                } else { //If value is greater, then break the loop
+                    break;
+                }
+            }
+
+            //Traverse to right
+            for(int k = i + 1; k < landValues.size(); k++) {
+                //Compare with my land add if it is equal or less than the value of my land
+                if(landValues.get(k) <= landValues.get(i)) {
+                    myLand.push(landValues.get(k));
+                } else { //If value is greater, then break the loop
+                    break;
+                }
+            }
+
+            //Get final sum of my lands for the index 'i'
+            sum = 0;
+            while(!myLand.isEmpty()) {
+                sum += myLand.pop();
+            }
+            result.add(sum);
+        }
+        PrintArray(result);
+    }
+
+    public static int[] AsteroidCollision(int n, int[] arr) {
+        Stack<Integer> stack = new Stack<>();
+
+        for (int asteroid : arr) {
+            boolean destroyed = false;
+
+            while (!stack.isEmpty() && asteroid < 0 && stack.peek() > 0) {
+                if (Math.abs(stack.peek()) < Math.abs(asteroid)) {
+                    stack.pop(); // The asteroid on the stack explodes
+                } else if (Math.abs(stack.peek()) == Math.abs(asteroid)) {
+                    stack.pop(); // Both asteroids explode
+                    destroyed = true;
+                    break;
+                } else {
+                    destroyed = true; // The current asteroid explodes
+                    break;
+                }
+            }
+
+            if (!destroyed) {
+                stack.push(asteroid); // Push the current asteroid if it hasn't exploded
+            }
+        }
+
+        // Convert the stack to an array to return the final state
+        int[] result = new int[stack.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = stack.get(i);
+        }
+
+        return result;
+    }
+
+    public static int MaxPartition(int n, int[] arr) {
+        int maxPartitionCount = 0;
+        int maxSoFar = 0;
+
+        for (int i = 0; i < arr.length; i++) {
+            maxSoFar = Math.max(maxSoFar, arr[i]);
+
+            // If the maximum element so far is equal to the current index, a partition can be made
+            if (maxSoFar == i) {
+                maxPartitionCount++;
+            }
+        }
+
+        return maxPartitionCount;
+    }
+
+    public static int MaxBreadthRamp(int n, int[] nums) {
+        Integer[] indices = new Integer[n];
+
+        // Initialize the array of indices
+        for (int i = 0; i < n; i++) {
+            indices[i] = i;
+        }
+
+        // Sort indices based on the values in nums
+        Arrays.sort(indices, (a, b) -> Integer.compare(nums[a], nums[b]));
+
+        int maxBreadth = 0;
+        int minIndex = n; // Initialize with a large number
+
+        for (int idx : indices) {
+            maxBreadth = Math.max(maxBreadth, idx - minIndex);
+            minIndex = Math.min(minIndex, idx);
+        }
+
+        return maxBreadth;
+    }
+
     public static int FindMaxDiff(int[] arr) {
         int n = arr.length;
         int[] leftSmaller = new int[n];
@@ -1116,6 +1226,28 @@ public class BasicDataStructures {
         }
 
         return maxAbsDiff;
+    }
+
+    public static int MagicPattern(int n, int[] nums) {
+        int potentialK = Integer.MIN_VALUE;
+        Stack<Integer> stack = new Stack<>();
+
+        // Traverse from right to left
+        for (int i = n - 1; i >= 0; i--) {
+            // If we find a valid nums[i], return true
+            if (nums[i] < potentialK) {
+                return 0;
+            }
+
+            // Update the stack and potentialK
+            while (!stack.isEmpty() && nums[i] > stack.peek()) {
+                potentialK = stack.pop();
+            }
+            stack.push(nums[i]);
+        }
+
+        // If no valid pattern is found, return false
+        return 1;
     }
 
     private static int ComputeSum(int[] nums, int divisor) {

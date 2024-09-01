@@ -38,6 +38,20 @@ public class Common {
         System.out.println(output.toString().trim());
     }
 
+    public static void PrintArray(int[][] arr) {
+        StringBuilder output = new StringBuilder();
+        output.append("[");
+        for(int i = 0; i < arr.length; i++) {
+            output.append((i > 0) ? ",[" : "[");
+            for(int j = 0; j < arr[i].length; j++) {
+                output.append(arr[i][j]).append((j + 1 == arr[i].length) ? "" : ",");
+            }
+            output.append("]");
+        }
+        output.append("]");
+        System.out.println(output.toString().trim());
+    }
+
     public static void PrintCircularList(Node head) {
         if (head == null) return;
 
