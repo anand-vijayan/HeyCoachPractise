@@ -607,39 +607,36 @@ public class BasicDataStructures {
     }
 
     public static void JetFighterCaptain(int[] a, int n, int k) {
-        //Find number of segments, if it is 1 or any odd then it is not valid message so "Wait". Else continue.
-        int numberOfSegments = n/k, start = 0, missingPositiveNumbers = 0;
-        boolean areSegmentsSame = false;
-        List<Set<Integer>> segments = new ArrayList<>();
-        if(numberOfSegments == 1) {
+        HashSet<Integer> b = new HashSet<>();
+        for (int i = 0; i < n; ++i) {
+            b.add(a[i]);
+        }
+
+        int mx;
+        for (mx = 0; mx <= n + 1; ++mx) {
+            if (!b.contains(mx)) {
+                break;
+            }
+        }
+
+        HashSet<Integer> s = new HashSet<>();
+        int l = 0;
+        int cnt = 0;
+        for (int i = 0; i < n; ++i) {
+            if (a[i] < mx) {
+                s.add(a[i]);
+            }
+            if (s.size() == mx) {
+                cnt++;
+                l = i + 1;
+                s.clear();
+            }
+        }
+
+        if (cnt >= k) {
+            System.out.println("Attack");
+        } else {
             System.out.println("Wait");
-        } else{
-            //Create segments of equal length
-            for(int i = 1; i <= numberOfSegments; i++) {
-                segments.add(new TreeSet<>(Arrays.asList(GetSegment(a,start,k))));
-                start += k;
-            }
-
-            //Check if all sets are same
-            for(int i = 0; i < segments.size() - 1; i++) {
-                if(!segments.get(i).containsAll(segments.get(i+1))) {
-                    areSegmentsSame = false;
-                    break;
-                } else {
-                    areSegmentsSame = true;
-                }
-            }
-
-            if(areSegmentsSame) {
-                //Check if any positive number is missing in the segments
-                for(Set<Integer> segment : segments) {
-                    missingPositiveNumbers += CheckMissingPositiveNumber(segment);
-                }
-                //If number of segments and missing positive numbers are same then "Attack" else "Wait"
-                System.out.println((numberOfSegments == missingPositiveNumbers) ? "Attack" : "Wait");
-            } else {
-                System.out.println("Wait");
-            }
         }
     }
 
@@ -1192,27 +1189,5 @@ public class BasicDataStructures {
                 GeneratePermutations(remaining, prefix + str.charAt(i), result);
             }
         }
-    }
-
-    private static Integer[] GetSegment(int[] arr, int start, int len) {
-        Integer[] result = new Integer[len];
-        int j = 0;
-        for(int i = start; i < start + len; i++) {
-            result[j] = arr[i];
-            j++;
-        }
-        return result;
-    }
-
-    private static int CheckMissingPositiveNumber(Set<Integer> segment) {
-        //Check for missing number
-        int missingNumber = 0;
-        for (int num : segment) {
-            if (num <= 0) {
-                missingNumber++;
-            }
-        }
-
-        return missingNumber;
     }
 }
