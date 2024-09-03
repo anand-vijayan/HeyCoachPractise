@@ -1,13 +1,16 @@
 package org.heycoach;
 
+import java.util.*;
+
 import static org.helpers.Common.*;
 import static org.mindmaps.Array.*;
+import static org.modules.DynamicProgramming.*;
 
 public class Main {
     public static void main(String[] args)  {
-        int[][] grid = new int[][] {{4,3,2,-1}, {3,2,1,-1},{1,1,-1,-2},{-1,-1,-2,-3}};
-        //PrintArray(FindTargetIndicesAfterSortingArray(nums,target));
-        System.out.println(CountNegativeNumbersInASortedMatrix(grid));
+        int[] cookies = new int[] {8,15,10,20,8};
+        int k = 2;
+        System.out.println(FairDistributionOfCookies(cookies,k));
     }
 }
 
