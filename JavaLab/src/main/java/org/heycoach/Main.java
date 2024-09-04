@@ -8,9 +8,8 @@ import static org.modules.DynamicProgramming.*;
 
 public class Main {
     public static void main(String[] args)  {
-        int[] cookies = new int[] {8,15,10,20,8};
-        int k = 2;
-        System.out.println(FairDistributionOfCookies(cookies,k));
+        int[][] arr = new int[][] {{2,8,7},{7,1,3},{1,9,5}};
+        System.out.println(RichestCustomerWealth(arr));
     }
 }
 

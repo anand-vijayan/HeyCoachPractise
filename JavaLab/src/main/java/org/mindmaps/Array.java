@@ -148,7 +148,7 @@ public class Array {
     //endregion
 
     //region Two Pointer
-    public static int[][] FlippingAnImage(int[][] image) {
+    public static int[][] FlippingAnImage_1(int[][] image) {
         int n = image.length;
 
         for (int i = 0; i < n; i++) {
@@ -230,7 +230,7 @@ public class Array {
         return indices;
     }
 
-    public static int CountNegativeNumbersInASortedMatrix(int[][] grid) {
+    public static int CountNegativeNumbersInASortedMatrix_1(int[][] grid) {
         int count = 0;
         for (int[] row : grid) {
             for (int colVal : row) {
@@ -390,6 +390,364 @@ public class Array {
     }
     //endregion
 
+    //region Sliding Window
+    public static int MinimumDifferenceBetweenHighestAndLowestOfKScores(int[] nums, int k) {
+        Arrays.sort(nums);
+        int minDifference = Integer.MAX_VALUE;
+        for (int i = 0; i <= nums.length - k; i++) {
+            int difference = nums[i + k - 1] - nums[i];
+            minDifference = Math.min(minDifference, difference);
+        }
+        return minDifference;
+    }
+
+    public static double MaximumAverageSubArray_1(int[] nums, int k) {
+        double maxSum = 0;
+        for (int i = 0; i < k; i++) {
+            maxSum += nums[i];
+        }
+
+        double currentSum = maxSum;
+
+        for (int i = k; i < nums.length; i++) {
+            currentSum += nums[i] - nums[i - k];
+            maxSum = Math.max(maxSum, currentSum);
+        }
+
+        return maxSum / k;
+    }
+
+    public static int MaximumPointsYouCanObtainFromCards(int[] cardPoints, int k) {
+        int n = cardPoints.length;
+        // Calculate the total sum of the array
+        int totalSum = 0;
+        for (int points : cardPoints) {
+            totalSum += points;
+        }
+
+        // Edge case: If k equals n, take all cards
+        if (k == n) {
+            return totalSum;
+        }
+
+        // Find the minimum sum of the subarray of length n - k
+        int windowSize = n - k;
+        int currentWindowSum = 0;
+
+        // Initial sum of the first window
+        for (int i = 0; i < windowSize; i++) {
+            currentWindowSum += cardPoints[i];
+        }
+
+        int minWindowSum = currentWindowSum;
+
+        // Slide the window across the array
+        for (int i = windowSize; i < n; i++) {
+            currentWindowSum += cardPoints[i] - cardPoints[i - windowSize];
+            minWindowSum = Math.min(minWindowSum, currentWindowSum);
+        }
+
+        // The maximum score is totalSum minus the minimum window sum
+        return totalSum - minWindowSum;
+    }
+
+    public static int BinarySubArraysWithSum(int[] nums, int goal) {
+        Map<Integer, Integer> prefixSumCount = new HashMap<>();
+        prefixSumCount.put(0, 1);
+        int prefixSum = 0;
+        int result = 0;
+        for (int num : nums) {
+            prefixSum += num;
+            result += prefixSumCount.getOrDefault(prefixSum - goal, 0);
+            prefixSumCount.put(prefixSum, prefixSumCount.getOrDefault(prefixSum, 0) + 1);
+        }
+
+        return result;
+    }
+
+    public static int MinimumSwapsToGroupAllOnesTogether_2(int[] nums) {
+        int n = nums.length;
+
+        //Count ones
+        int totalOnes = 0;
+        for (int num : nums) {
+            if (num == 1) {
+                totalOnes++;
+            }
+        }
+
+        //If all element is one then no swap
+        if (totalOnes == 0 || totalOnes == n) {
+            return 0;
+        }
+
+        //1. Create a sliding window of size totalOnes over the doubled array
+        int[] doubled = new int[2 * n];
+        for (int i = 0; i < 2 * n; i++) {
+            doubled[i] = nums[i % n];
+        }
+
+        //2. Calculate minimum swaps needed
+        int currentZeros = 0;
+
+        //2.1 Calculate number of 0's in the first window of size totalOnes
+        for (int i = 0; i < totalOnes; i++) {
+            if (doubled[i] == 0) {
+                currentZeros++;
+            }
+        }
+
+        //2.2 Assume it as minimum number of swaps
+        int minSwaps = currentZeros;
+
+        //2.3 Slide the window across the doubled array
+        for (int i = totalOnes; i < 2 * n; i++) {
+            if (doubled[i] == 0) {
+                currentZeros++;
+            }
+            if (doubled[i - totalOnes] == 0) {
+                currentZeros--;
+            }
+            minSwaps = Math.min(minSwaps, currentZeros);
+        }
+
+        return minSwaps;
+    }
+    //endregion
+
+    //region Geometry
+    public static boolean CheckIfItIsAStraightLine(int[][] coordinates) {
+        // There must be at least two points to form a line
+        if (coordinates.length < 2) {
+            return false;
+        }
+
+        // Calculate the slope difference using cross product
+        int x1 = coordinates[0][0], y1 = coordinates[0][1];
+        int x2 = coordinates[1][0], y2 = coordinates[1][1];
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+
+        for (int i = 2; i < coordinates.length; i++) {
+            int x3 = coordinates[i][0], y3 = coordinates[i][1];
+            int dx2 = x3 - x2;
+            int dy2 = y3 - y2;
+
+            // Check if cross products are equal
+            if (dy * dx2 != dy2 * dx) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static int[] QueriesOnNumberOfPointsInsideACircle(int[][] points, int[][] queries) {
+        int[] answer = new int[queries.length];
+
+        // Iterate through each query
+        for (int j = 0; j < queries.length; j++) {
+            int xj = queries[j][0];
+            int yj = queries[j][1];
+            int rj = queries[j][2];
+            int rjSquared = rj * rj;
+
+            int count = 0;
+
+            // Check each point if it lies within the current circle
+            for (int[] point : points) {
+                int xi = point[0];
+                int yi = point[1];
+
+                // Calculate the squared distance from the point to the center of the circle
+                int dx = xi - xj;
+                int dy = yi - yj;
+                int distanceSquared = dx * dx + dy * dy;
+
+                // If the distance is within the radius, increment the count
+                if (distanceSquared <= rjSquared) {
+                    count++;
+                }
+            }
+
+            // Store the result for the current query
+            answer[j] = count;
+        }
+
+        return answer;
+    }
+
+    public static int DetonateTheMaximumBombs(int[][] bombs) {
+        int n = bombs.length;
+        List<List<Integer>> graph = new ArrayList<>();
+
+        // Step 1: Construct the graph
+        for (int i = 0; i < n; i++) {
+            graph.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i != j) {
+                    long dx = bombs[i][0] - bombs[j][0];
+                    long dy = bombs[i][1] - bombs[j][1];
+                    long distanceSquared = dx * dx + dy * dy;
+                    long radiusSquared = (long) bombs[i][2] * bombs[i][2];
+
+                    if (distanceSquared <= radiusSquared) {
+                        graph.get(i).add(j);
+                    }
+                }
+            }
+        }
+
+        // Step 2: Find the maximum number of bombs that can be detonated
+        int maxDetonations = 0;
+        for (int i = 0; i < n; i++) {
+            boolean[] visited = new boolean[n];
+            maxDetonations = Math.max(maxDetonations, detonateBombHelper(graph, visited, i));
+        }
+
+        return maxDetonations;
+    }
+
+    public static int MaxPointsOnALine(int[][] points) {
+        if (points.length < 2) {
+            return points.length;
+        }
+
+        int maxPoints = 1;
+
+        for (int i = 0; i < points.length; i++) {
+            Map<String, Integer> slopeMap = new HashMap<>();
+            int duplicate = 0;
+            int currentMax = 0;
+
+            for (int j = i + 1; j < points.length; j++) {
+                int dx = points[j][0] - points[i][0];
+                int dy = points[j][1] - points[i][1];
+
+                if (dx == 0 && dy == 0) {
+                    duplicate++;
+                    continue;
+                }
+
+                int gcd = maxPointsOnALineHelper(dx, dy);
+                dx /= gcd;
+                dy /= gcd;
+
+                String slopeKey = dx + "/" + dy;
+                slopeMap.put(slopeKey, slopeMap.getOrDefault(slopeKey, 0) + 1);
+                currentMax = Math.max(currentMax, slopeMap.get(slopeKey));
+            }
+
+            maxPoints = Math.max(maxPoints, currentMax + duplicate + 1);
+        }
+
+        return maxPoints;
+    }
+    //endregion
+
+    //region Matrix
+    public static int RichestCustomerWealth(int[][] accounts) {
+        int maxWealth = 0;
+
+        // Iterate over each customer
+        for (int[] customer : accounts) {
+            int wealth = 0;
+
+            // Calculate the wealth of the current customer
+            for (int account : customer) {
+                wealth += account;
+            }
+
+            // Update the maximum wealth if the current customer's wealth is higher
+            if (wealth > maxWealth) {
+                maxWealth = wealth;
+            }
+        }
+
+        return maxWealth;
+    }
+
+    public static int[][] FlippingAnImage_2(int[][] image) {
+        return FlippingAnImage_1(image);
+    }
+
+    public static int MatrixDiagonalSum(int[][] mat) {
+        int n = mat.length;
+        int primaryDiagonalSum = 0;
+        int secondaryDiagonalSum = 0;
+
+        for (int i = 0; i < n; i++) {
+            primaryDiagonalSum += mat[i][i];
+            secondaryDiagonalSum += mat[i][n - 1 - i];
+        }
+
+        // If n is odd, subtract the middle element as it has been counted twice
+        if (n % 2 == 1) {
+            primaryDiagonalSum -= mat[n / 2][n / 2];
+        }
+
+        return primaryDiagonalSum + secondaryDiagonalSum;
+    }
+
+    public static int CountNegativeNumbersInASortedMatrix_2(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int count = 0;
+
+        int row = 0;
+        int col = n - 1;
+
+        while (row < m && col >= 0) {
+            if (grid[row][col] < 0) {
+                // All elements in this column from row to the end are negative
+                count += (m - row);
+                // Move left
+                col--;
+            } else {
+                // Move down
+                row++;
+            }
+        }
+
+        return count;
+    }
+
+    //region Sub-Rectangle Queries
+    private static int[][] matrix;
+    private static int[][] updates;
+    private static int updateCount;
+
+    public static void SubRectangleQueries(int[][] rectangle) {
+        matrix = rectangle;
+        updates = new int[rectangle.length][rectangle[0].length];
+        updateCount = 0;
+    }
+
+    public static void UpdateSubRectangle(int row1, int col1, int row2, int col2, int newValue) {
+        updateCount++;
+        for (int i = row1; i <= row2; i++) {
+            for (int j = col1; j <= col2; j++) {
+                updates[i][j] = updateCount;
+                matrix[i][j] = newValue;
+            }
+        }
+    }
+
+    public static int GetSubRectangleValue(int row, int col) {
+        // Find the most recent update affecting this cell
+        if (updates[row][col] == updateCount) {
+            return matrix[row][col];
+        } else {
+            return matrix[row][col];
+        }
+    }
+    //endregion
+
+    //endregion
+
     //region Privates
     private static int subsetXORSumHelper(int[] nums, int index, int currentXOR) {
         if (index == nums.length) {
@@ -472,6 +830,26 @@ public class Array {
         }
 
         return count;
+    }
+
+    private static int detonateBombHelper(List<List<Integer>> graph, boolean[] visited, int i) {
+        visited[i] = true;
+        int count = 1;
+
+        for (int neighbor : graph.get(i)) {
+            if (!visited[neighbor]) {
+                count += detonateBombHelper(graph, visited, neighbor);
+            }
+        }
+
+        return count;
+    }
+
+    private static int maxPointsOnALineHelper(int a, int b) {
+        if (b == 0) {
+            return a;
+        }
+        return maxPointsOnALineHelper(b, a % b);
     }
     //endregion
 }
