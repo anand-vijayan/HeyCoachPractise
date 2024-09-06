@@ -1,5 +1,6 @@
 package org.modules;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class DynamicProgramming {
@@ -126,6 +127,123 @@ public class DynamicProgramming {
     //endregion
 
     //region Dynamic Programming 2
+    public static int GridPuzzle_1(int m, int n){
+        return BinomialCoefficient(m + n - 2, m - 1);
+    }
+
+    public static int GridPuzzle_2(int n, int m, int[][] obstacleGrid) {
+
+        // If the start or the end is an obstacle, return 0.
+        if (obstacleGrid[0][0] == 1 || obstacleGrid[m-1][n-1] == 1) {
+            return 0;
+        }
+
+        // DP table to store number of ways to reach each cell.
+        int[][] dp = new int[m][n];
+
+        // Initialize the starting point.
+        dp[0][0] = 1;
+
+        // Fill the first column.
+        for (int i = 1; i < m; i++) {
+            dp[i][0] = (obstacleGrid[i][0] == 1) ? 0 : dp[i-1][0];
+        }
+
+        // Fill the first row.
+        for (int j = 1; j < n; j++) {
+            dp[0][j] = (obstacleGrid[0][j] == 1) ? 0 : dp[0][j-1];
+        }
+
+        // Fill the rest of the DP table.
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                if (obstacleGrid[i][j] == 1) {
+                    dp[i][j] = 0;  // Blocked cell.
+                } else {
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1];  // Sum of top and left cells.
+                }
+            }
+        }
+
+        // The bottom-right corner contains the result.
+        return dp[m-1][n-1];
+    }
+
+    public static int MinTaxPaid_1(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+
+        // DP array to store the minimum cost to reach each cell.
+        int[][] dp = new int[m][n];
+
+        // Initialize the starting point.
+        dp[0][0] = grid[0][0];
+
+        // Fill the first row.
+        for (int j = 1; j < n; j++) {
+            dp[0][j] = dp[0][j-1] + grid[0][j];
+        }
+
+        // Fill the first column.
+        for (int i = 1; i < m; i++) {
+            dp[i][0] = dp[i-1][0] + grid[i][0];
+        }
+
+        // Fill the rest with the DP table.
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[i][j] = Math.min(dp[i-1][j], dp[i][j-1]) + grid[i][j];
+            }
+        }
+
+        // The bottom-right corner contains the result.
+        return dp[m-1][n-1];
+    }
+
+    public static int TheNewClassmate(int n, String s) {
+        n = s.length();
+        char maxChar = s.charAt(0);  // Keep the first character as max char
+        int count = 0;
+
+        Stack<Character> characterStack = new Stack<>();
+        //Put the first letter into stack
+        characterStack.push(maxChar);
+        for(char c : s.toCharArray()) {
+            if(c > maxChar) {
+                characterStack.push(c);
+            }
+        }
+
+        return characterStack.size();
+    }
+
+    public static int CrossingTheJungle(int n, int m, int[][] grid) {
+        // DP table to store the minimum experience required to reach the goal from each cell.
+        int[][] dp = new int[n][m];
+
+        // Initialize the bottom-right corner.
+        dp[n-1][m-1] = Math.max(1, 1 - grid[n-1][m-1]);
+
+        // Fill the last row (can only move right).
+        for (int j = m - 2; j >= 0; j--) {
+            dp[n-1][j] = Math.max(1, dp[n-1][j+1] - grid[n-1][j]);
+        }
+
+        // Fill the last column (can only move down).
+        for (int i = n - 2; i >= 0; i--) {
+            dp[i][m-1] = Math.max(1, dp[i+1][m-1] - grid[i][m-1]);
+        }
+
+        // Fill the rest with the DP table.
+        for (int i = n - 2; i >= 0; i--) {
+            for (int j = m - 2; j >= 0; j--) {
+                dp[i][j] = Math.max(1, Math.min(dp[i+1][j], dp[i][j+1]) - grid[i][j]);
+            }
+        }
+
+        // The top-left corner will contain the minimum initial exp required.
+        return dp[0][0];
+    }
     //endregion
 
     //region Private
@@ -264,6 +382,14 @@ public class DynamicProgramming {
         }
 
         return dp[n];
+    }
+
+    private static int BinomialCoefficient(int n, int k) {
+        BigInteger res = BigInteger.ONE;
+        for (int i = 0; i < k; i++) {
+            res = res.multiply(BigInteger.valueOf(n - i)).divide(BigInteger.valueOf(i + 1));
+        }
+        return res.intValue();
     }
     //endregion
 }

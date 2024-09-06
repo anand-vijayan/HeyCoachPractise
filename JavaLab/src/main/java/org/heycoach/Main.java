@@ -1,11 +1,11 @@
 package org.heycoach;
 
-import static org.sessiontests.Four.*;
+import static org.modules.DynamicProgramming.*;
 
 public class Main {
     public static void main(String[] args)  {
-        String command = "LLLLLLLRLRSRSRRLRRLLLLLRLRSRRLLRSLRSLLRLSSRLSRLRLR";
-        System.out.println(TrafficRush(command));
+        String command = "klepto";
+        System.out.println(TheNewClassmate(command.length(),command));
     }
 }
 
