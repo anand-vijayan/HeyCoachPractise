@@ -1308,8 +1308,8 @@ public class BasicDataStructures {
         return lps;
     }
 
-    private static boolean IsVowel(char c) {
-        return "aeiou".indexOf(c) != -1;
+    public static boolean IsVowel(char c) {
+        return "aeiou".indexOf(Character.toLowerCase(c)) != -1;
     }
 
     private static void GeneratePermutations(String str, String prefix, Set<String> result) {

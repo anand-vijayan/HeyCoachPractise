@@ -1,5 +1,7 @@
 package org.mindmaps;
 
+import org.modules.BasicDataStructures;
+
 import java.util.*;
 
 public class Strings {
@@ -158,7 +160,7 @@ public class Strings {
         return availableChars.size() == 26;
     }
 
-    public static String IncreasingDecreasingString(String s) {
+    public static String IncreasingDecreasingString_1(String s) {
         int[] count = new int[26];  // Array to store character frequencies.
 
         // Count frequency of each character.
@@ -282,9 +284,134 @@ public class Strings {
     //endregion
 
     //region Two Pointer
+    public static String FindFirstPalindromicStringInTheArray(String[] words) {
+        return Array.FindFirstPalindromicStringInTheArray(words);
+    }
+
+    public static String ReverseWordsInAString_3(String s) {
+        StringBuilder output = new StringBuilder();
+        String[] words = s.split(" ");
+        for (String word : words) {
+            output.append(ReverseAWord(word.trim())).append(" ");
+        }
+        return output.toString().trim();
+    }
+
+    public static String ReversePrefixOfWord(String word, char c) {
+        //If character not found return same word
+        if(!word.contains(String.valueOf(c))) return word;
+
+        //Create a stack of characters till 'c'
+        Stack<Character> wordStack = new Stack<>();
+        int positionOfCharC = 0;
+        for(char a : word.toCharArray()) {
+            wordStack.push(a);
+            positionOfCharC++;
+            if(a == c) {
+                break;
+            }
+        }
+
+        //Make the output
+        StringBuilder output = new StringBuilder();
+        while (!wordStack.empty()) {
+            output.append(wordStack.pop());
+        }
+        output.append(word, positionOfCharC, word.length());
+        return output.toString();
+    }
+
+    public static int[] DIStringMatch(String s){
+        return Array.DIStringMatch(s);
+    }
+
+    public static String MergeStringsAlternately(String word1, String word2) {
+        int m = word1.length();
+        int n = word2.length();
+
+        if(m > 0 && n > 0) {
+            char[] charactersOfWord1 = word1.toCharArray();
+            char[] charactersOfWord2 = word2.toCharArray();
+            int limit = Math.max(m,n);
+            StringBuilder output = new StringBuilder();
+            for(int i = 0; i < limit; i++) {
+                if(i < m) {
+                    output.append(charactersOfWord1[i]);
+                }
+
+                if(i < n) {
+                    output.append(charactersOfWord2[i]);
+                }
+            }
+            return output.toString();
+        } else {
+            return "";
+        }
+    }
     //endregion
 
     //region Counting
+    public static int SplitAStringInBalancedStrings(String s){
+        int countOfL = 0, countOfR = 0, balanceStringCount = 0;
+        for(char c : s.toCharArray()) {
+            if(c == 'L') countOfL++;
+            if(c == 'R') countOfR++;
+            if(countOfR == countOfL) balanceStringCount++;
+        }
+        return balanceStringCount;
+    }
+
+    public static boolean DetermineIfStringHalvesAreAlike(String s){
+        int n = s.length(), m = n/2, count1 = 0, count2 = 0;
+        for (int i = 0; i < n; i++) {
+            if(i < m && BasicDataStructures.IsVowel(s.charAt(i))) count1++;
+            else if(i >= m && BasicDataStructures.IsVowel(s.charAt(i))) count2++;
+            else continue;
+        }
+        return count1 == count2;
+    }
+
+    public static String IncreasingDecreasingString_2(String s) {
+        return IncreasingDecreasingString_1(s);
+    }
+
+    public static boolean CheckIfAllCharactersHaveEqualNumberOfOccurrences(String s){
+        //TreeMap to hold frequency
+        TreeMap<Character, Integer> frequency = new TreeMap<>();
+        for(char c : s.toCharArray()) {
+            frequency.put(c, frequency.getOrDefault(c, 0) + 1);
+        }
+
+        //Traverse frequency to check if there is more than one count
+        int currentCount = Collections.max(frequency.values());
+        for(Map.Entry<Character,Integer> f : frequency.entrySet()) {
+            if(currentCount != f.getValue()) return false;
+        }
+        return true;
+    }
+
+    public static String KthDistinctStringInAnArray(String[] arr, int k){
+        // Step 1: Count the frequency of each string
+        HashMap<String, Integer> frequencyMap = new HashMap<>();
+
+        for (String s : arr) {
+            frequencyMap.put(s, frequencyMap.getOrDefault(s, 0) + 1);
+        }
+
+        // Step 2: Filter distinct strings and find the k-th one
+        int distinctCount = 0;
+        for (String s : arr) {
+            if (frequencyMap.get(s) == 1) {
+                distinctCount++;
+                if (distinctCount == k) {
+                    return s;  // Return the k-th distinct string
+                }
+            }
+        }
+
+        return "";  // If there are fewer than k distinct strings, return an empty string
+    }
+
     //endregion
 
     //region Sliding Window
@@ -345,6 +472,25 @@ public class Strings {
         }
 
         return true;
+    }
+
+    private static String ReverseAWord(String s) {
+        //This method is to reverse a word, so if there is white space then return same string
+        if(s.contains(" ")) return s;
+
+        //Use stack to hold characters
+        Stack<Character> wordStack = new Stack<>();
+        for(char c : s.toCharArray()){
+            wordStack.push(c);
+        }
+
+        //Now, form output from stack
+        StringBuilder output = new StringBuilder();
+        while (!wordStack.empty()){
+            output.append(wordStack.pop());
+        }
+
+        return output.toString();
     }
     //endregion
 }
