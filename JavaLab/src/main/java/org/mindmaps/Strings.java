@@ -1,5 +1,6 @@
 package org.mindmaps;
 
+import org.dto.TreeNode;
 import org.modules.BasicDataStructures;
 
 import java.util.*;
@@ -495,7 +496,7 @@ public class Strings {
         return maxVowels;
     }
 
-    public static int MaximizeTheConfusionOfAnExam(String answerKey, int k){
+    public static int MaximizeTheConfusionOfAnExam_1(String answerKey, int k){
         return Math.max(MaximizeTheConfusionOfAnExamHelper(answerKey,k,'T'), MaximizeTheConfusionOfAnExamHelper(answerKey,k,'F'));
     }
     //endregion
@@ -590,7 +591,7 @@ public class Strings {
         return result.reverse().toString();
     }
 
-    public static List<String> LetterCasePermutation(String s){
+    public static List<String> LetterCasePermutation_1(String s){
         List<String> result = new ArrayList<>();
         LetterCasePermutationHelper(s.toCharArray(), 0, result);
         return result;
@@ -598,15 +599,296 @@ public class Strings {
     //endregion
 
     //region DP Based
+    public static boolean IsSubsequence(String s, String t){
+        int sLen = s.length(), tLen = t.length();
+        int sPointer = 0, tPointer = 0;
+
+        // Traverse the string t
+        while (sPointer < sLen && tPointer < tLen) {
+            // If characters match, move both pointers
+            if (s.charAt(sPointer) == t.charAt(tPointer)) {
+                sPointer++;
+            }
+            // Always move the pointer of t
+            tPointer++;
+        }
+
+        // If we have traversed all characters of s, return true
+        return sPointer == sLen;
+    }
+
+    public static int CountSubstringsThatDifferByOneCharacter(String s, String t) {
+        int sLen = s.length();
+        int tLen = t.length();
+        int count = 0;
+
+        // Compare each substring from s with each substring from t
+        for (int i = 0; i < sLen; i++) {
+            for (int j = 0; j < tLen; j++) {
+                int mismatchCount = 0;
+
+                // Compare substrings of different lengths starting at i and j
+                for (int k = 0; i + k < sLen && j + k < tLen; k++) {
+                    if (s.charAt(i + k) != t.charAt(j + k)) {
+                        mismatchCount++;
+                    }
+
+                    // If exactly one mismatch is found, count it
+                    if (mismatchCount == 1) {
+                        count++;
+                    } else if (mismatchCount > 1) {
+                        break; // Stop early if more than one mismatch is found
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
+    public static List<String> GenerateParentheses(int n) {
+        List<String> result = new ArrayList<>();
+        GenerateParenthesesHelper(result, "", 0, 0, n);
+        return result;
+    }
+
+    public static int NumberOfGoodWaysToSplitAString(String s) {
+        int n = s.length();
+        if (n < 2) return 0; // No valid splits if the length of the string is less than 2
+
+        // Arrays to store the number of distinct characters in prefix and suffix
+        int[] prefixDistinctCount = new int[n];
+        int[] suffixDistinctCount = new int[n];
+
+        // Compute distinct characters count for prefixes
+        Set<Character> prefixSet = new HashSet<>();
+        for (int i = 0; i < n; i++) {
+            prefixSet.add(s.charAt(i));
+            prefixDistinctCount[i] = prefixSet.size();
+        }
+
+        // Compute distinct characters count for suffixes
+        Set<Character> suffixSet = new HashSet<>();
+        for (int i = n - 1; i >= 0; i--) {
+            suffixSet.add(s.charAt(i));
+            suffixDistinctCount[i] = suffixSet.size();
+        }
+
+        // Count good splits
+        int goodSplits = 0;
+        for (int i = 0; i < n - 1; i++) {
+            if (prefixDistinctCount[i] == suffixDistinctCount[i + 1]) {
+                goodSplits++;
+            }
+        }
+
+        return goodSplits;
+    }
+
+    public static List<Integer> DifferentWaysToAddParentheses_1(String expression){
+        if (memo.containsKey(expression)) {
+            return memo.get(expression);
+        }
+
+        List<Integer> result = new ArrayList<>();
+
+        // Base case: if the expression is just a number, return it as a single result
+        if (!expression.contains("+") && !expression.contains("-") && !expression.contains("*")) {
+            result.add(Integer.parseInt(expression));
+            memo.put(expression, result);
+            return result;
+        }
+
+        // Recursive case: split the expression by operators and compute results
+        for (int i = 0; i < expression.length(); i++) {
+            char c = expression.charAt(i);
+            if (c == '+' || c == '-' || c == '*') {
+                // Divide the expression into left and right parts based on the current operator
+                String leftExpr = expression.substring(0, i);
+                String rightExpr = expression.substring(i + 1);
+
+                // Recursively compute results for the left and right parts
+                List<Integer> leftResults = DifferentWaysToAddParentheses_1(leftExpr);
+                List<Integer> rightResults = DifferentWaysToAddParentheses_1(rightExpr);
+
+                // Combine results from left and right parts based on the current operator
+                for (int left : leftResults) {
+                    for (int right : rightResults) {
+                        if (c == '+') {
+                            result.add(left + right);
+                        } else if (c == '-') {
+                            result.add(left - right);
+                        } else if (c == '*') {
+                            result.add(left * right);
+                        }
+                    }
+                }
+            }
+        }
+
+        memo.put(expression, result);
+        return result;
+    }
     //endregion
 
     //region Prefix Sum
+    public static int FindTheLongestSubstringContainingVowelsInEvenCounts(String s){
+        // Map to store the first occurrence index of each bitmask
+        Map<Integer, Integer> prefixMap = new HashMap<>();
+        prefixMap.put(0, -1); // Base case: empty substring
+
+        int maxLength = 0;
+        int bitmask = 0; // Initial bitmask (all vowels counts are even)
+
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            // Update bitmask if the character is a vowel
+            switch (c) {
+                case 'a':
+                    bitmask ^= 1 << 0; // Toggle bit 0
+                    break;
+                case 'e':
+                    bitmask ^= 1 << 1; // Toggle bit 1
+                    break;
+                case 'i':
+                    bitmask ^= 1 << 2; // Toggle bit 2
+                    break;
+                case 'o':
+                    bitmask ^= 1 << 3; // Toggle bit 3
+                    break;
+                case 'u':
+                    bitmask ^= 1 << 4; // Toggle bit 4
+                    break;
+            }
+
+            // Check if the current bitmask has been seen before
+            if (prefixMap.containsKey(bitmask)) {
+                int prevIndex = prefixMap.get(bitmask);
+                maxLength = Math.max(maxLength, i - prevIndex);
+            } else {
+                // Store the first occurrence of this bitmask
+                prefixMap.put(bitmask, i);
+            }
+
+            // Check all possible single bit flips (changing exactly one vowel's parity)
+            for (int j = 0; j < 5; j++) {
+                int flippedMask = bitmask ^ (1 << j);
+                if (prefixMap.containsKey(flippedMask)) {
+                    int prevIndex = prefixMap.get(flippedMask);
+                    maxLength = Math.max(maxLength, i - prevIndex);
+                }
+            }
+        }
+
+        return maxLength;
+    }
+
+    public static int MaximizeTheConfusionOfAnExam_2(String answerKey, int k){
+        return MaximizeTheConfusionOfAnExam_1(answerKey,k);
+    }
+
+    public static int MinimumWhiteTilesAfterCoveringWithCarpets(String s, int nc, int l){
+        int n = s.length(), dp[][] = new int[n + 1][nc + 1];
+        for (int i = 1; i <= n; ++i) {
+            for (int k = 0; k <= nc; ++k) {
+                int jump = dp[i - 1][k] + s.charAt(i - 1) - '0';
+                int cover = k > 0 ? dp[Math.max(i - l, 0)][k - 1] : 1000;
+                dp[i][k] = Math.min(cover, jump);
+            }
+        }
+        return dp[n][nc];
+    }
     //endregion
 
     //region Recursion
+    public static void ReverseString(char[] s){
+        int left = 0;
+        int right = s.length - 1;
+
+        while (left < right) {
+            // Swap characters at left and right indices
+            char temp = s[left];
+            s[left] = s[right];
+            s[right] = temp;
+
+            // Move the pointers towards the center
+            left++;
+            right--;
+        }
+    }
+
+    public static List<Integer> DifferentWaysToAddParentheses_2(String expression){
+        return DifferentWaysToAddParentheses_1(expression);
+    }
+
+    public static List<List<String>> PalindromePartitioning(String s) {
+        List<List<String>> result = new ArrayList<>();
+        List<String> currentPartition = new ArrayList<>();
+        PalindromePartitioningHelper(s, 0, currentPartition, result);
+        return result;
+    }
+
+    public static char FindKthBitInNthBinaryString(int n, int k){
+        return FindKthBitInNthBinaryStringHelper(n,k);
+    }
+
+    public static int MaximumScoreWordsFormedByLetters(String[] words, char[] letters, int[] score) {
+        // Count the frequency of each letter in the list of letters
+        Map<Character, Integer> letterCount = new HashMap<>();
+        for (char c : letters) {
+            letterCount.put(c, letterCount.getOrDefault(c, 0) + 1);
+        }
+
+        // List to store valid words and their scores
+        List<String> validWords = new ArrayList<>();
+        Map<String, Integer> wordScores = new HashMap<>();
+
+        for (String word : words) {
+            if (CanFormWord(word, letterCount)) {
+                int wordScore = GetWordScore(word, score);
+                validWords.add(word);
+                wordScores.put(word, wordScore);
+            }
+        }
+
+        // Use backtracking to find the maximum score
+        return MaximumScoreWordsFormedByLettersHelper(validWords, wordScores, letterCount, 0);
+    }
     //endregion
 
     //region Backtracking
+    public static List<String> BinaryTreePaths(TreeNode root) {
+        List<String> paths = new ArrayList<>();
+        if (root != null) {
+            BinaryTreePathsHelper(root, "", paths);
+        }
+        return paths;
+    }
+
+    public static int LetterTilePossibilities(String tiles) {
+        Set<String> resultSet = new HashSet<>();
+        char[] chars = tiles.toCharArray();
+        boolean[] used = new boolean[chars.length];
+        LetterTilePossibilitiesHelper(chars, used, "", resultSet);
+        return resultSet.size();
+    }
+
+    //Combination Iterator is added as a different DTO class
+
+    public static List<String> LetterCasePermutation_2(String s){
+        return LetterCasePermutation_1(s);
+    }
+
+    public static String TheKthLexicographicalStringOfAllHappyStringsOfLengthN(int n, int k) {
+        List<String> happyStrings = new ArrayList<>();
+        TheKthLexicographicalStringOfAllHappyStringsOfLengthNHelper(n, "", happyStrings);
+
+        if (k <= happyStrings.size()) {
+            return happyStrings.get(k - 1); // k is 1-indexed
+        } else {
+            return "";
+        }
+    }
     //endregion
 
     //region String Matching
@@ -750,6 +1032,164 @@ public class Strings {
             chars[index] = Character.isLowerCase(chars[index])
                     ? Character.toUpperCase(chars[index])
                     : Character.toLowerCase(chars[index]);
+        }
+    }
+
+    private static void GenerateParenthesesHelper(List<String> result, String current, int open, int close, int max) {
+        // Base case: if the current string has 2 * n characters, it is a valid combination
+        if (current.length() == max * 2) {
+            result.add(current);
+            return;
+        }
+
+        // Add an opening parenthesis if possible
+        if (open < max) {
+            GenerateParenthesesHelper(result, current + "(", open + 1, close, max);
+        }
+
+        // Add a closing parenthesis if it will not invalidate the combination
+        if (close < open) {
+            GenerateParenthesesHelper(result, current + ")", open, close + 1, max);
+        }
+    }
+
+    private static Map<String, List<Integer>> memo = new HashMap<>();
+
+    private static void PalindromePartitioningHelper(String s, int start, List<String> currentPartition, List<List<String>> result) {
+        if (start == s.length()) {
+            result.add(new ArrayList<>(currentPartition));
+            return;
+        }
+
+        for (int end = start + 1; end <= s.length(); end++) {
+            String substring = s.substring(start, end);
+            if (IsPalindrome(substring)) {
+                currentPartition.add(substring);
+                PalindromePartitioningHelper(s, end, currentPartition, result);
+                currentPartition.remove(currentPartition.size() - 1);
+            }
+        }
+    }
+
+    private static boolean IsPalindrome(String s) {
+        int left = 0, right = s.length() - 1;
+        while (left < right) {
+            if (s.charAt(left) != s.charAt(right)) {
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+
+    private static char FindKthBitInNthBinaryStringHelper(int n, int k) {
+        int len = (1 << n) - 1; // Length of Sn, which is 2^n - 1
+
+        // Base case
+        if (n == 1) {
+            return '0'; // S1 = "0"
+        }
+
+        int mid = len / 2 + 1;
+
+        if (k == mid) {
+            return '1'; // Middle of Sn is always '1'
+        } else if (k < mid) {
+            // k-th bit is in the first half, which is S_{n-1}
+            return FindKthBitInNthBinaryStringHelper(n - 1, k);
+        } else {
+            // k-th bit is in the second half, which is the reversed inverted S_{n-1}
+            char result = FindKthBitInNthBinaryStringHelper(n - 1, len - k + 1);
+            return result == '0' ? '1' : '0'; // Invert the result
+        }
+    }
+
+    private static int MaximumScoreWordsFormedByLettersHelper(List<String> words, Map<String, Integer> wordScores, Map<Character, Integer> letterCount, int index) {
+        if (index == words.size()) {
+            return 0;
+        }
+
+        // Exclude current word
+        int maxScore = MaximumScoreWordsFormedByLettersHelper(words, wordScores, letterCount, index + 1);
+
+        // Include current word if it can be formed
+        String currentWord = words.get(index);
+        if (CanFormWord(currentWord, letterCount)) {
+            // Update letter counts
+            Map<Character, Integer> newLetterCount = new HashMap<>(letterCount);
+            for (char c : currentWord.toCharArray()) {
+                newLetterCount.put(c, newLetterCount.get(c) - 1);
+            }
+
+            // Calculate score including this word
+            int includeScore = wordScores.get(currentWord) + MaximumScoreWordsFormedByLettersHelper(words, wordScores, newLetterCount, index + 1);
+            maxScore = Math.max(maxScore, includeScore);
+        }
+
+        return maxScore;
+    }
+
+    private static boolean CanFormWord(String word, Map<Character, Integer> letterCount) {
+        Map<Character, Integer> wordCount = new HashMap<>();
+        for (char c : word.toCharArray()) {
+            wordCount.put(c, wordCount.getOrDefault(c, 0) + 1);
+        }
+        for (Map.Entry<Character, Integer> entry : wordCount.entrySet()) {
+            if (entry.getValue() > letterCount.getOrDefault(entry.getKey(), 0)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int GetWordScore(String word, int[] score) {
+        int totalScore = 0;
+        for (char c : word.toCharArray()) {
+            totalScore += score[c - 'a'];
+        }
+        return totalScore;
+    }
+
+    private static void BinaryTreePathsHelper(TreeNode node, String path, List<String> paths) {
+        if (node != null) {
+            path += Integer.toString(node.val);
+            // Check if it's a leaf node
+            if (node.left == null && node.right == null) {
+                paths.add(path); // Add the current path to the result
+            } else {
+                // Continue to explore left and right subtrees
+                if (node.left != null) {
+                    BinaryTreePathsHelper(node.left, path + "->", paths);
+                }
+                if (node.right != null) {
+                    BinaryTreePathsHelper(node.right, path + "->", paths);
+                }
+            }
+        }
+    }
+
+    private static void LetterTilePossibilitiesHelper(char[] chars, boolean[] used, String current, Set<String> resultSet) {
+        for (int i = 0; i < chars.length; i++) {
+            if (used[i]) continue;
+            used[i] = true;
+            String newSequence = current + chars[i];
+            resultSet.add(newSequence);
+            LetterTilePossibilitiesHelper(chars, used, newSequence, resultSet);
+            used[i] = false; // backtrack
+        }
+    }
+
+    private static void TheKthLexicographicalStringOfAllHappyStringsOfLengthNHelper(int n, String current, List<String> result) {
+        if (current.length() == n) {
+            result.add(current);
+            return;
+        }
+
+        for (char ch : new char[] {'a', 'b', 'c'}) {
+            if (current.isEmpty() || current.charAt(current.length() - 1) != ch) {
+                TheKthLexicographicalStringOfAllHappyStringsOfLengthNHelper(n, current + ch, result);
+            }
         }
     }
     //endregion
