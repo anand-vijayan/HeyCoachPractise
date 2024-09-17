@@ -1,11 +1,11 @@
 package org.heycoach;
 
-import static org.mindmaps.Strings.*;
+import static org.tgp.Level_C3.*;
 
 public class Main {
     public static void main(String[] args)  {
-        String s = "YazaAay";
-        System.out.println(LongestNiceSubstring_1(s));
+        String s = "tree";
+        System.out.println(SortTheArray(s));
     }
 }
 
