@@ -111,7 +111,7 @@ public class Strings {
         return count;
     }
 
-    public int CountTheNumberOfConsistentStrings(String allowed, String[] words) {
+    public int CountTheNumberOfConsistentStrings_1(String allowed, String[] words) {
         return Array.CountTheNumberOfConsistentStrings(allowed, words);
     }
 
@@ -224,7 +224,7 @@ public class Strings {
         return true;
     }
 
-    public static char FindTheDifference(String s, String t) {
+    public static char FindTheDifference_1(String s, String t) {
 
         //Original solution
         //Count the characters in both words, if they are same then anagram else false
@@ -415,9 +415,186 @@ public class Strings {
     //endregion
 
     //region Sliding Window
+    public static int SubstringsOfSizeThreeWithDistinctCharacters(String s) {
+        int n = s.length();
+        int windowSize = 3;
+        int validSubString = 0;
+        int m = n-windowSize+1;
+        TreeMap<Character,Integer> count = new TreeMap<>();
+        for(int i = 0; i < m; i++) {
+            String word = s.substring(i, i + windowSize);
+            System.out.println(word);
+            for(char c : word.toCharArray()){
+                count.put(c, count.getOrDefault(c, 0) + 1);
+            }
+            if(Collections.max(count.values()) == 1) validSubString++;
+            count.clear();
+        }
+
+        return validSubString;
+    }
+
+    public static String LongestNiceSubstring_1(String s) {
+        return LongestNiceSubstringHelper(s, 0, s.length());
+    }
+
+    public static int NumberOfSubstringsContainingAllThreeCharacters(String s) {
+        int n = s.length();
+        int[] count = new int[3]; // Array to store the count of 'a', 'b', 'c'
+        int left = 0;
+        int result = 0;
+
+        for (int right = 0; right < n; right++) {
+            // Increment the count for the current character
+            count[s.charAt(right) - 'a']++;
+
+            // While the window contains at least one of each character 'a', 'b', and 'c'
+            while (count[0] > 0 && count[1] > 0 && count[2] > 0) {
+                // All substrings starting from 'left' to 'right' are valid
+                result += n - right; // (n - right) gives the number of valid substrings
+
+                // Shrink the window from the left
+                count[s.charAt(left) - 'a']--;
+                left++;
+            }
+        }
+
+        return result;
+    }
+
+    public static int MaximumNumberOfVowelsInASubstringOfGivenLength(String s, int k) {
+        // A set containing all vowel characters
+        Set<Character> vowels = Set.of('a', 'e', 'i', 'o', 'u');
+        int maxVowels = 0; // To store the maximum number of vowels
+        int currentVowels = 0; // To store the number of vowels in the current window
+
+        // Initialize the first window of size k
+        for (int i = 0; i < k; i++) {
+            if (vowels.contains(s.charAt(i))) {
+                currentVowels++;
+            }
+        }
+        maxVowels = currentVowels;
+
+        // Slide the window across the string
+        for (int i = k; i < s.length(); i++) {
+            // Remove the leftmost character from the window
+            if (vowels.contains(s.charAt(i - k))) {
+                currentVowels--;
+            }
+
+            // Add the new character to the window
+            if (vowels.contains(s.charAt(i))) {
+                currentVowels++;
+            }
+
+            // Update the maximum number of vowels encountered so far
+            maxVowels = Math.max(maxVowels, currentVowels);
+        }
+
+        return maxVowels;
+    }
+
+    public static int MaximizeTheConfusionOfAnExam(String answerKey, int k){
+        return Math.max(MaximizeTheConfusionOfAnExamHelper(answerKey,k,'T'), MaximizeTheConfusionOfAnExamHelper(answerKey,k,'F'));
+    }
     //endregion
 
     //region Bit Manipulation
+    public static int CountTheNumberOfConsistentStrings_2(String allowed, String[] words) {
+        // Convert allowed characters into a Set for quick lookup
+        Set<Character> allowedSet = new HashSet<>();
+        for (char c : allowed.toCharArray()) {
+            allowedSet.add(c);
+        }
+
+        int consistentCount = 0; // To count the number of consistent strings
+
+        // Iterate through each word in the words array
+        for (String word : words) {
+            boolean isConsistent = true;
+
+            // Check if all characters in the word are in the allowed set
+            for (char c : word.toCharArray()) {
+                if (!allowedSet.contains(c)) {
+                    isConsistent = false;
+                    break; // If we find a character not in the allowed set, the word is not consistent
+                }
+            }
+
+            // If the word is consistent, increment the count
+            if (isConsistent) {
+                consistentCount++;
+            }
+        }
+
+        return consistentCount;
+    }
+
+    public static String LongestNiceSubstring_2(String s){
+        return LongestNiceSubstring_1(s);
+    }
+
+    public static char FindTheDifference_2(String s, String t){
+        char result = 0;
+
+        // XOR all characters in s
+        for (char c : s.toCharArray()) {
+            result ^= c;
+        }
+
+        // XOR all characters in t
+        for (char c : t.toCharArray()) {
+            result ^= c;
+        }
+
+        // The result will be the extra character in t
+        return result;
+    }
+
+    public static String AddBinary(String a, String b){
+        StringBuilder result = new StringBuilder();
+        int i = a.length() - 1; // Pointer for string a
+        int j = b.length() - 1; // Pointer for string b
+        int carry = 0; // To store the carry during addition
+
+        // Process both strings from the end
+        while (i >= 0 || j >= 0) {
+            int sum = carry; // Start with the carry
+
+            // Add current digit of a, if available
+            if (i >= 0) {
+                sum += a.charAt(i) - '0';
+                i--;
+            }
+
+            // Add current digit of b, if available
+            if (j >= 0) {
+                sum += b.charAt(j) - '0';
+                j--;
+            }
+
+            // Append the current bit to the result (0 or 1)
+            result.append(sum % 2);
+
+            // Update carry (sum divided by 2)
+            carry = sum / 2;
+        }
+
+        // If there's still a carry, append it
+        if (carry != 0) {
+            result.append(carry);
+        }
+
+        // Reverse the result since we've built it backwards
+        return result.reverse().toString();
+    }
+
+    public static List<String> LetterCasePermutation(String s){
+        List<String> result = new ArrayList<>();
+        LetterCasePermutationHelper(s.toCharArray(), 0, result);
+        return result;
+    }
     //endregion
 
     //region DP Based
@@ -491,6 +668,89 @@ public class Strings {
         }
 
         return output.toString();
+    }
+
+    private static String LongestNiceSubstringHelper(String s, int start, int end) {
+
+        if (end - start < 2) {
+            return ""; // A string of length 1 or less cannot be nice
+        }
+
+        Set<Character> set = new HashSet<>();
+        for (int i = start; i < end; i++) {
+            set.add(s.charAt(i));
+        }
+
+        for (int i = start; i < end; i++) {
+            char c = s.charAt(i);
+            // If the string contains either only uppercase or only lowercase for this character
+            if (set.contains(Character.toUpperCase(c)) && set.contains(Character.toLowerCase(c))) {
+                continue; // This character satisfies the nice condition
+            }
+
+            // Split the string at the invalid character
+            String left = LongestNiceSubstringHelper(s, start, i);
+            String right = LongestNiceSubstringHelper(s, i + 1, end);
+
+            // Return the longer of the two, or the left if they're the same length
+            return left.length() >= right.length() ? left : right;
+        }
+
+        // If we looped through the entire string and all characters are nice
+        return s.substring(start, end);
+    }
+
+    private static int MaximizeTheConfusionOfAnExamHelper(String answerKey, int k, char ch) {
+        int left = 0;
+        int maxLen = 0;
+        int count = 0; // To count the number of flips (non-ch characters in the window)
+
+        for (int right = 0; right < answerKey.length(); right++) {
+            // If the current character is not ch, we count it as a flip
+            if (answerKey.charAt(right) != ch) {
+                count++;
+            }
+
+            // If the number of flips exceeds k, shrink the window from the left
+            while (count > k) {
+                if (answerKey.charAt(left) != ch) {
+                    count--;
+                }
+                left++;
+            }
+
+            // Update the maximum window size
+            maxLen = Math.max(maxLen, right - left + 1);
+        }
+
+        return maxLen;
+    }
+
+    private static void LetterCasePermutationHelper(char[] chars, int index, List<String> result) {
+        if (index == chars.length) {
+            // If we have processed all characters, add the current permutation to the result
+            result.add(new String(chars));
+            return;
+        }
+
+        // Backtrack without changing the current character (continue as is)
+        LetterCasePermutationHelper(chars, index + 1, result);
+
+        // If the current character is a letter, we toggle its case and backtrack again
+        if (Character.isLetter(chars[index])) {
+            // Change case: toggle between uppercase and lowercase
+            chars[index] = Character.isLowerCase(chars[index])
+                    ? Character.toUpperCase(chars[index])
+                    : Character.toLowerCase(chars[index]);
+
+            // Backtrack with the toggled character
+            LetterCasePermutationHelper(chars, index + 1, result);
+
+            // Revert the case change to continue with other possibilities
+            chars[index] = Character.isLowerCase(chars[index])
+                    ? Character.toUpperCase(chars[index])
+                    : Character.toLowerCase(chars[index]);
+        }
     }
     //endregion
 }
