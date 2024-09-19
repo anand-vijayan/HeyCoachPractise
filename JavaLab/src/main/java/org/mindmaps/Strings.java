@@ -892,6 +892,69 @@ public class Strings {
     //endregion
 
     //region String Matching
+    public static int CheckIfAWordOccursAsAPrefixOfAnyWordInASentence(String sentence, String searchWord) {
+        // Split the sentence into words
+        String[] words = sentence.split(" ");
+
+        // Iterate through the words
+        for (int i = 0; i < words.length; i++) {
+            // Check if the current word starts with the searchWord
+            if (words[i].startsWith(searchWord)) {
+                // Return the 1-based index
+                return i + 1;
+            }
+        }
+
+        // If no match found, return -1
+        return -1;
+    }
+
+    public static List<String> StringMatchingInAnArray(String[] words) {
+        List<String> result = new ArrayList<>();
+
+        // Compare each word with every other word
+        for (int i = 0; i < words.length; i++) {
+            for (int j = 0; j < words.length; j++) {
+                // Check if words[i] is a substring of words[j]
+                if (i != j && words[j].contains(words[i])) {
+                    result.add(words[i]);
+                    break; // No need to check further, we already found it
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static boolean RotateString(String s, String goal) {
+        // Step 1: Check if the lengths are different
+        if (s.length() != goal.length()) {
+            return false;
+        }
+
+        // Step 2: Check if goal is a substring of s + s
+        String doubled = s + s;
+        return doubled.contains(goal);
+    }
+
+    public static boolean RepeatedSubstringPattern(String s) {
+        // Concatenate s with itself
+        String doubled = s + s;
+        // Remove the first and last characters and check if s exists within the modified string
+        return doubled.substring(1, doubled.length() - 1).contains(s);
+    }
+
+    public static int MaximumRepeatingSubstring(String sequence, String word){
+        int k = 0;
+        StringBuilder repeated = new StringBuilder();
+
+        // Continue appending the word and checking if it's a substring of sequence
+        while (sequence.contains(repeated.append(word).toString())) {
+            k++;
+        }
+
+        return k;
+    }
     //endregion
 
     //region Private Methods
