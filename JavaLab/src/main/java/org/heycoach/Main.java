@@ -1,18 +1,20 @@
 package org.heycoach;
 
-import org.dto.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.util.*;
-
-import static org.helpers.Common.*;
-import static org.helpers.Sorting.*;
-import static org.modules.BasicDataStructures.*;
-import static org.sessiontests.Three.*;
+import static org.sessiontests.Five.SpecialArrangements;
+import static org.tgp.Level_C3.*;
 
 public class Main {
     public static void main(String[] args)  {
-        int[] arr = new int[] {2,1,8};
-        System.out.println(FindMaxDiff(arr));
+        List<Integer> nums = new ArrayList<>();
+        nums.add(1);
+        nums.add(2);
+        nums.add(6);
+        nums.add(5);
+        nums.add(4);
+        System.out.println(SpecialArrangements(nums));
     }
 }
 
