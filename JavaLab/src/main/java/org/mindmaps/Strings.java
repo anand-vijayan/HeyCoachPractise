@@ -33,15 +33,15 @@ public class Strings {
     }
 
     public static String DefangingAnIPAddress(String address) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for(char c : address.toCharArray()) {
             if(c == '.') {
-                output += "[.]";
+                output.append("[.]");
             } else {
-                output += c;
+                output.append(c);
             }
         }
-        return output;
+        return output.toString();
     }
 
     public static int MaximumNumberOfWordsFoundInSentences(String[] sentences) {
@@ -275,9 +275,7 @@ public class Strings {
         StringBuilder result = new StringBuilder();
         for (char c : characters) {
             int freq = frequencyMap.get(c);
-            for (int i = 0; i < freq; i++) {
-                result.append(c);
-            }
+            result.append(String.valueOf(c).repeat(Math.max(0, freq)));
         }
 
         return result.toString();
@@ -718,7 +716,7 @@ public class Strings {
                             result.add(left + right);
                         } else if (c == '-') {
                             result.add(left - right);
-                        } else if (c == '*') {
+                        } else {
                             result.add(left * right);
                         }
                     }
@@ -745,7 +743,7 @@ public class Strings {
             // Update bitmask if the character is a vowel
             switch (c) {
                 case 'a':
-                    bitmask ^= 1 << 0; // Toggle bit 0
+                    bitmask ^= 1; // Toggle bit 0
                     break;
                 case 'e':
                     bitmask ^= 1 << 1; // Toggle bit 1
@@ -788,7 +786,8 @@ public class Strings {
     }
 
     public static int MinimumWhiteTilesAfterCoveringWithCarpets(String s, int nc, int l){
-        int n = s.length(), dp[][] = new int[n + 1][nc + 1];
+        int n = s.length();
+        int[][] dp = new int[n + 1][nc + 1];
         for (int i = 1; i <= n; ++i) {
             for (int k = 0; k <= nc; ++k) {
                 int jump = dp[i - 1][k] + s.charAt(i - 1) - '0';
@@ -1116,7 +1115,7 @@ public class Strings {
         }
     }
 
-    private static Map<String, List<Integer>> memo = new HashMap<>();
+    private static final Map<String, List<Integer>> memo = new HashMap<>();
 
     private static void PalindromePartitioningHelper(String s, int start, List<String> currentPartition, List<List<String>> result) {
         if (start == s.length()) {

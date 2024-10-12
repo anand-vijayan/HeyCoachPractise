@@ -68,11 +68,11 @@ public class Array {
         //Prepare MorseCode for the given words
         Map<String, String> morseCodeOfWords = new HashMap<>();
         for(String word : words) {
-            String morseCodeWord = "";
+            StringBuilder morseCodeWord = new StringBuilder();
             for (char c : word.toCharArray()) {
-                morseCodeWord += morseDictionary.get(c);
+                morseCodeWord.append(morseDictionary.get(c));
             }
-            morseCodeOfWords.put(word,morseCodeWord);
+            morseCodeOfWords.put(word, morseCodeWord.toString());
         }
 
         //Find the equal codes
@@ -187,12 +187,12 @@ public class Array {
         int[] result = new int[n];
         int j = 0;
         Stack<Integer> oddNums = new Stack<>();
-        for(int i = 0; i < n; i++) {
-            if(nums[i]%2 == 0) {
-                result[j] = nums[i];
+        for (int num : nums) {
+            if (num % 2 == 0) {
+                result[j] = num;
                 j++;
             } else {
-                oddNums.push(nums[i]);
+                oddNums.push(num);
             }
         }
 
@@ -219,7 +219,7 @@ public class Array {
     //region Binary Search
     public static List<Integer> FindTargetIndicesAfterSortingArray(int[] nums, int target) {
         //Sort the array
-        nums = BubbleSort(nums);
+        BubbleSort(nums);
 
         //Find the indices
         List<Integer> indices = new ArrayList<>();
@@ -255,7 +255,7 @@ public class Array {
         }
 
         // Step 3: Sort the rows by the number of soldiers and then by row index.
-        Collections.sort(rowStrength, (a, b) -> {
+        rowStrength.sort((a, b) -> {
             if (a[0] != b[0]) {
                 return Integer.compare(a[0], b[0]);
             } else {
