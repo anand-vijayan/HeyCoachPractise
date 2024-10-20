@@ -2,9 +2,7 @@ package org.modules;
 
 import org.dto.ListNode;
 import org.dto.Node;
-import org.helpers.Common;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -111,7 +109,144 @@ public class AdvancedDataStructure {
     }
 
     public static ListNode AddNodeFirstMiddleAndLast(ListNode head, int val) {
-        return AddNode(head, val);
+        if (head == null) return null;
+
+        //1. Insert at front, front node will have 'prev' value as null, it is head itself
+        ListNode newNodeBeginning = new ListNode(val);
+        newNodeBeginning.next = head;
+        head.prev = newNodeBeginning;
+        head = newNodeBeginning;
+
+        //2. Find last, in-between any -ve value node, then filter it-out
+        ListNode curr = head;
+        ListNode last = null;
+        while(curr != null){
+            if(curr.val < 0) {
+                curr.prev.next = curr.next;
+            }
+
+            if(curr.next == null) {
+                if(curr.val > 0) {
+                    last = curr;
+                } else {
+                    last = curr.prev;
+                }
+            }
+
+            curr = curr.next;
+        }
+
+        ListNode newEndNode = new ListNode(val);
+        last.next = newEndNode;
+        newEndNode.prev = last;
+
+        // Find the length of updated node
+        int length = getLength(head);
+
+        // Create node for middle
+        ListNode newNodeMiddle = new ListNode(val);
+
+        // 3. Insert at the middle (ignoring negative values)
+        int mid = length / 2;  // This gives the position just after the midpoint
+        int count = 0;
+
+        // Move to the midpoint, skipping negative nodes
+        curr = head;
+        while (curr != null && count < mid) {
+            if (curr.val >= 0) {
+                count++;
+            }
+            curr = curr.next;
+        }
+
+        // Insert at the middle position
+        newNodeMiddle.prev = curr == null ? null : curr.prev;
+        newNodeMiddle.next = curr;
+        if (curr != null && curr.prev != null) {
+            curr.prev.next = newNodeMiddle;
+            curr.prev = newNodeMiddle;
+        }
+
+        return head;
+    }
+
+    public static ListNode RotateNodesByKNode(ListNode head, int k) {
+        if (head == null || head.next == null) {
+            return head;  // No rotation needed for empty or single-node lists
+        }
+
+        // Step 1: Get the length of the list
+        int length = getLength(head);
+
+        // Step 2: Find the actual number of rotations required (K % N)
+        k = k % length;
+        if (k == 0) {
+            return head;  // No rotation needed if k is 0
+        }
+
+        // Step 3: Move to the (N - K)th node, which will be the new tail after rotation
+        ListNode newTail = head;
+        for (int i = 1; i < length - k; i++) {
+            newTail = newTail.next;
+        }
+
+        // Step 4: Set new head and rearrange pointers
+        ListNode newHead = newTail.next;
+        newTail.next = null;  // New tail points to null
+        newHead.prev = null;  // New head's prev should be null
+
+        // Step 5: Traverse to the last node and connect it to the old head
+        ListNode last = newHead;
+        while (last.next != null) {
+            last = last.next;
+        }
+        last.next = head;
+        head.prev = last;
+
+        return newHead;
+    }
+
+    public static ListNode MergeTwoSortedLinkedLists(ListNode first, ListNode list2) {
+        // Create a dummy node to act as the starting point of the merged list
+        ListNode dummy = new ListNode(-1);
+        ListNode current = dummy;
+
+        // Traverse both lists and merge them
+        while (first != null && list2 != null) {
+            if (first.val <= list2.val) {
+                current.next = first;
+                first = first.next;
+            } else {
+                current.next = list2;
+                list2 = list2.next;
+            }
+            current = current.next;
+        }
+
+        // If there are remaining nodes in list1, append them
+        if (first != null) {
+            current.next = first;
+        }
+
+        // If there are remaining nodes in list2, append them
+        if (list2 != null) {
+            current.next = list2;
+        }
+
+        // Return the head of the merged list (next of dummy)
+        return dummy.next;
+    }
+
+    public static ListNode MergeMultipleSortedLinkedList(List<ListNode> lists) {
+        if(lists == null || lists.isEmpty()) {
+            return null;
+        }
+        ListNode mergedList = lists.get(0);
+        for(int i = 1; i < lists.size(); i++) {
+            mergedList = MergeTwoSortedLinkedLists(mergedList, lists.get(i));
+        }
+
+        return mergedList;
     }
     //endregion
 
@@ -119,45 +254,27 @@ public class AdvancedDataStructure {
     //endregion
 
     //region Private Methods
-    private static ListNode AddNode(ListNode head, int val) {
-        //Step 1: Read the values into a list, if any value is negative, then ignore it.
-        List<Integer> basicValues = new ArrayList<>();
-        ListNode current = head;
+    private static int getLength(ListNode head) {
+        int count = 0;
+        ListNode curr = head;
+        while (curr != null && curr.val != -1) {
+            count++;
+            curr = curr.next;
+        }
+        return count;
+    }
 
-        while (current != null) {
-            if (current.val > 0) {
-                basicValues.add(current.val);
-            }
-            // Move to the next node
+    public static ListNode buildList(int[] values) {
+        if (values.length == 0) {
+            return null;
+        }
+        ListNode head = new ListNode(values[0]);
+        ListNode current = head;
+        for (int i = 1; i < values.length; i++) {
+            current.next = new ListNode(values[i]);
             current = current.next;
         }
-
-        //Step 2: Replicate the final node in an array and Insert values at front, middle and last.
-        int[] valuesArray = new int[basicValues.size() + 3];
-        int middleIndex = basicValues.size()/2 + 1;
-        int j = 0;
-
-        for(int i = 0; i < valuesArray.length; i++) {
-            if(i == 0 || i == middleIndex || i == valuesArray.length - 1) {
-                valuesArray[i] = val;
-            } else {
-                valuesArray[i] = basicValues.get(j);
-                j++;
-            }
-        }
-
-        Common.PrintArray(valuesArray);
-
-        //Step 3: Create final list node
-        head = new ListNode(valuesArray[0]);
-        current = head;
-
-        for (int i = 1; i < valuesArray.length; i++) {
-            current.next = new ListNode(valuesArray[i]); // Create a new node
-            current = current.next; // Move to the next node
-        }
-
-        return head; // Return the modified list
+        return head;
     }
     //endregion
 }
