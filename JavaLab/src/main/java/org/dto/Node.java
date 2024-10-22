@@ -6,6 +6,8 @@ public class Node {
     public int value;
     public Node next;
     public Node prev;
+    public Node left;
+    public Node right;
 
     public Node(int data) {
         this.data = data;
