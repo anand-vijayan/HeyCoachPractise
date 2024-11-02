@@ -1,13 +1,11 @@
 package org.modules;
 
-import org.dto.ListNode;
-import org.dto.Node;
-import org.dto.NodeInfo;
-import org.dto.TreeNode;
+import org.dto.*;
 
 import java.util.*;
 
 public class AdvancedDataStructure {
+
     //region Constants And Variables
     private static final int NOT_COVERED = 0;
     private static final int COVERED_NO_WATCHMAN = 1;
@@ -18,7 +16,7 @@ public class AdvancedDataStructure {
     private static long[] invFact;
     private static int minDifference = Integer.MAX_VALUE;
     private static Integer prevValue = null;
-    private static List<Integer> values = new ArrayList<>();
+    private static final List<Integer> values = new ArrayList<>();
     //endregion
 
     //region Linked Lists 1
@@ -358,6 +356,169 @@ public class AdvancedDataStructure {
     //endregion
 
     //region Binary Trees 2
+    public static int BookAllocationProblem(int[] books, int n, int students) {
+        if (students > n) {
+            return -1; // Not enough books for each student to have at least one
+        }
+
+        int low = getMax(books);
+        int high = getSum(books);
+        int result = high;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+
+            if (isPossible(books, n, students, mid)) {
+                result = mid; // Try for a smaller maximum
+                high = mid - 1;
+            } else {
+                low = mid + 1; // Try for a larger maximum
+            }
+        }
+
+        return result;
+    }
+
+    public static int IndexOfMaxElementInAnArray(int[] arr, int n) {
+        if (n == 1) return 0;  // Single element case, it’s the peak by default
+
+        int left = 0;
+        int right = n - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            // Check if mid is a peak
+            boolean isLeftSmaller = (mid == 0 || arr[mid] > arr[mid - 1]);
+            boolean isRightSmaller = (mid == n - 1 || arr[mid] > arr[mid + 1]);
+
+            if (isLeftSmaller && isRightSmaller) {
+                return mid;  // mid is the peak element
+            } else if (mid > 0 && arr[mid] < arr[mid - 1]) {
+                right = mid - 1;  // Move left
+            } else {
+                left = mid + 1;   // Move right
+            }
+        }
+
+        return -1;  // No peak found that meets the criteria
+    }
+
+    public static int AggressiveCows(int n, int k, int[] stalls) {
+        Arrays.sort(stalls);  // Ensure stalls are sorted
+
+        int low = 1;
+        int high = stalls[n - 1] - stalls[0];
+        int result = 0;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+
+            if (canPlaceCows(stalls, n, k, mid)) {
+                result = mid; // feasible with `mid`, try for a larger distance
+                low = mid + 1;
+            } else {
+                high = mid - 1; // not feasible with `mid`, try for a smaller distance
+            }
+        }
+
+        return result;
+    }
+
+    public static ArrayList<Integer> SortTheNodesInBST(Node root) {
+        ArrayList<Integer> unSortedList = new ArrayList<>();
+        ArrayList<Integer> sortedList = new ArrayList<>();
+        inOrderTraversal(root, unSortedList);
+        Node outputRoot = null;
+        for(int value : unSortedList) {
+            outputRoot = insertBST(outputRoot,value);
+        }
+        inOrderTraversal(outputRoot, sortedList);
+        return sortedList;
+    }
+
+    public static int FindingTheSizeOfTheLargest(Node root) {
+        int[] maxBSTSize = new int[1];
+        largestBSTHelper(root, maxBSTSize);
+        return maxBSTSize[0];
+    }
+    //endregion
+
+    //region Tries
+    public static void InsertWordInTrie(String[] words, TrieNode root){
+        for(String word : words) {
+            insertIntoTrie(word,root);
+        }
+    }
+
+    public static boolean SearchInTrie(String word, TrieNode root) {
+        TrieNode currentNode = root;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            int index = ch - 'a';
+
+            if (currentNode.children[index] == null) {
+                return false;
+            }
+            currentNode = currentNode.children[index];
+        }
+        return currentNode.isend;
+    }
+
+    public static List<String> AutoCompleteUsingTrie(String prefix, TrieNode root) {
+        TrieNode currentNode = root;
+        for (char ch : prefix.toCharArray()) {
+            int index = ch - 'a';
+            if (currentNode.children[index] == null) {
+                return new ArrayList<>();  // No words with this prefix
+            }
+            currentNode = currentNode.children[index];
+        }
+
+        List<String> result = new ArrayList<>();
+        getWordsFromNode(currentNode, new StringBuilder(prefix), result);
+
+        Collections.sort(result);
+        return result;
+    }
+
+    public static int XorPairInTrie(TrieNode root, int[] ar, int n){
+        int maxXOR = 0;
+
+        // Insert all numbers into the Trie
+        for (int num : ar) {
+            insertIntoTrie(num,root);
+        }
+
+        // For each number, find the max XOR with other numbers
+        for (int num : ar) {
+            maxXOR = Math.max(maxXOR, findMaxXOR(num,root));
+        }
+
+        return maxXOR;
+    }
+
+    public static void RemoveWord(String word, TrieNode root) {
+        removeFromTrieNodeHelper(root,word,0);
+    }
+    //endregion
+
+    //region Heaps 1
+    //endregion
+
+    //region Heaps 2
+    //endregion
+
+    //region Heaps 3
+    //endregion
+
+    //region Graphs 1
+    //endregion
+
+    //region Graphs 2
+    //endregion
+
+    //region Graphs 3
     //endregion
 
     //region Private Methods
@@ -649,6 +810,219 @@ public class AdvancedDataStructure {
         inOrderTraversal(node.left);
         values.add(node.val);
         inOrderTraversal(node.right);
+    }
+
+    private static boolean isPossible(int[] books, int n, int students, int maxPages) {
+        int studentCount = 1;
+        int currentSum = 0;
+
+        for (int pages : books) {
+            if (currentSum + pages > maxPages) {
+                studentCount++;
+                currentSum = pages;
+
+                if (studentCount > students) {
+                    return false;
+                }
+            } else {
+                currentSum += pages;
+            }
+        }
+
+        return true;
+    }
+
+    private static int getMax(int[] books) {
+        int max = books[0];
+        for (int pages : books) {
+            max = Math.max(max, pages);
+        }
+        return max;
+    }
+
+    private static int getSum(int[] books) {
+        int sum = 0;
+        for (int pages : books) {
+            sum += pages;
+        }
+        return sum;
+    }
+
+    private static boolean canPlaceCows(int[] stalls, int n, int k, int distance) {
+        int count = 1; // Place the first cow in the first stall
+        int lastPosition = stalls[0];
+
+        for (int i = 1; i < n; i++) {
+            if (stalls[i] - lastPosition >= distance) {
+                count++;  // Place a cow in this stall
+                lastPosition = stalls[i];
+
+                if (count == k) {
+                    return true;  // All cows have been placed successfully
+                }
+            }
+        }
+
+        return false;  // Could not place all cows with at least `distance` separation
+    }
+
+    public static Node insertBST(Node root, int value) {
+        if (root == null) {
+            return new Node(value);
+        }
+        if (value < root.data) {
+            root.left = insertBST(root.left, value);
+        } else if (value > root.data) {
+            root.right = insertBST(root.right, value);
+        }
+        return root;
+    }
+
+    private static void inOrderTraversal(Node root, List<Integer> sortedList) {
+        if (root != null) {
+            inOrderTraversal(root.left, sortedList);
+            sortedList.add(root.data);
+            inOrderTraversal(root.right, sortedList);
+        }
+    }
+
+    private static SubTreeInfo largestBSTHelper(Node node, int[] maxBSTSize) {
+        // Base case
+        if (node == null) {
+            return new SubTreeInfo(true, 0, Integer.MAX_VALUE, Integer.MIN_VALUE);
+        }
+
+        // Recursively check left and right subtrees
+        SubTreeInfo leftInfo = largestBSTHelper(node.left, maxBSTSize);
+        SubTreeInfo rightInfo = largestBSTHelper(node.right, maxBSTSize);
+
+        // Check if the current subtree rooted at `node` is a BST
+        if (leftInfo.isBST && rightInfo.isBST && node.data > leftInfo.max && node.data < rightInfo.min) {
+            int size = 1 + leftInfo.size + rightInfo.size;
+            maxBSTSize[0] = Math.max(maxBSTSize[0], size);
+            int min = Math.min(node.data, leftInfo.min);
+            int max = Math.max(node.data, rightInfo.max);
+            return new SubTreeInfo(true, size, min, max);
+        } else {
+            return new SubTreeInfo(false, 0, 0, 0);
+        }
+    }
+
+    private static void insertIntoTrie(String word, TrieNode root) {
+        TrieNode currentNode = root;
+
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            int index = ch - 'a';
+
+            // If the character node doesn't exist, create it
+            if (currentNode.children[index] == null) {
+                currentNode.children[index] = new TrieNode(ch);
+            }
+
+            // Move to the next node
+            currentNode = currentNode.children[index];
+        }
+
+        // Mark the end of the word
+        currentNode.isend = true;
+        System.out.println("Yes");
+    }
+
+    private static void insertIntoTrie(int num, TrieNode root) {
+        TrieNode current = root;
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (bit == 0) {
+                if (current.left == null) {
+                    current.left = new TrieNode();
+                }
+                current = current.left;
+            } else {
+                if (current.right == null) {
+                    current.right = new TrieNode();
+                }
+                current = current.right;
+            }
+        }
+    }
+
+    private static void getWordsFromNode(TrieNode node, StringBuilder prefix, List<String> result) {
+        if (node.isend) {
+            result.add(prefix.toString());
+        }
+        for (char ch = 'a'; ch <= 'z'; ch++) {
+            int index = ch - 'a';
+            if (node.children[index] != null) {
+                prefix.append(ch);
+                getWordsFromNode(node.children[index], prefix, result);
+                prefix.deleteCharAt(prefix.length() - 1);  // Backtrack
+            }
+        }
+    }
+
+    private static int findMaxXOR(int num, TrieNode root) {
+        TrieNode current = root;
+        int maxXOR = 0;
+
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            // Check if we can take the opposite bit
+            if (bit == 0) {
+                if (current.right != null) { // Go right to maximize XOR
+                    maxXOR |= (1 << i);
+                    current = current.right;
+                } else { // Otherwise, go left
+                    current = current.left;
+                }
+            } else {
+                if (current.left != null) { // Go left to maximize XOR
+                    maxXOR |= (1 << i);
+                    current = current.left;
+                } else { // Otherwise, go right
+                    current = current.right;
+                }
+            }
+        }
+
+        return maxXOR;
+    }
+
+    private static boolean removeFromTrieNodeHelper(TrieNode current, String word, int depth) {
+        if (current == null) {
+            return false;
+        }
+
+        // If we've reached the end of the word
+        if (depth == word.length()) {
+            // Word doesn't exist
+            if (!current.isend) {
+                return false;
+            }
+            // Mark the end of word as false
+            current.isend = false;
+
+            // If current node has no other children, return true (node can be deleted)
+            return isTrieNodeEmpty(current);
+        }
+
+        int index = word.charAt(depth) - 'a';
+        if (removeFromTrieNodeHelper(current.children[index], word, depth + 1)) {
+            current.children[index] = null;
+
+            // Check if current node can be deleted
+            return !current.isend && isTrieNodeEmpty(current);
+        }
+        return false;
+    }
+
+    private static boolean isTrieNodeEmpty(TrieNode node) {
+        for (TrieNode child : node.children) {
+            if (child != null) {
+                return false;
+            }
+        }
+        return true;
     }
     //endregion
 }
