@@ -1,17 +1,17 @@
 package org.heycoach;
 
-import java.util.Vector;
-
-import static org.sessiontests.Seven.GoldNuggets;
+import java.util.*;
+import static org.modules.AdvancedDataStructure.*;
 
 public class Main {
     public static void main(String[] args)  {
-        int[] arr = new int[] {3,1,6,6,3,6};
-        Vector<Integer> inputVector = new Vector<>();
-        for(int a : arr) {
-            inputVector.add(a);
+
+        int[] input = new int[] {5,15,1,3};
+
+        for(int a : input) {
+            System.out.print(MedianAtEveryStep(a) + " ");
         }
-        System.out.println(GoldNuggets(inputVector));
+        System.out.println();
     }
 }
 
