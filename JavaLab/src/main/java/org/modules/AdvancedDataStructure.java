@@ -1,13 +1,11 @@
 package org.modules;
 
-import org.dto.ListNode;
-import org.dto.Node;
-import org.dto.NodeInfo;
-import org.dto.TreeNode;
-
+import org.dto.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AdvancedDataStructure {
+
     //region Constants And Variables
     private static final int NOT_COVERED = 0;
     private static final int COVERED_NO_WATCHMAN = 1;
@@ -18,7 +16,8 @@ public class AdvancedDataStructure {
     private static long[] invFact;
     private static int minDifference = Integer.MAX_VALUE;
     private static Integer prevValue = null;
-    private static List<Integer> values = new ArrayList<>();
+    private static final List<Integer> values = new ArrayList<>();
+    private static List<Integer> medianData = new ArrayList<>();
     //endregion
 
     //region Linked Lists 1
@@ -358,6 +357,460 @@ public class AdvancedDataStructure {
     //endregion
 
     //region Binary Trees 2
+    public static int BookAllocationProblem(int[] books, int n, int students) {
+        if (students > n) {
+            return -1; // Not enough books for each student to have at least one
+        }
+
+        int low = getMax(books);
+        int high = getSum(books);
+        int result = high;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+
+            if (isPossible(books, n, students, mid)) {
+                result = mid; // Try for a smaller maximum
+                high = mid - 1;
+            } else {
+                low = mid + 1; // Try for a larger maximum
+            }
+        }
+
+        return result;
+    }
+
+    public static int IndexOfMaxElementInAnArray(int[] arr, int n) {
+        if (n == 1) return 0;  // Single element case, it’s the peak by default
+
+        int left = 0;
+        int right = n - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            // Check if mid is a peak
+            boolean isLeftSmaller = (mid == 0 || arr[mid] > arr[mid - 1]);
+            boolean isRightSmaller = (mid == n - 1 || arr[mid] > arr[mid + 1]);
+
+            if (isLeftSmaller && isRightSmaller) {
+                return mid;  // mid is the peak element
+            } else if (mid > 0 && arr[mid] < arr[mid - 1]) {
+                right = mid - 1;  // Move left
+            } else {
+                left = mid + 1;   // Move right
+            }
+        }
+
+        return -1;  // No peak found that meets the criteria
+    }
+
+    public static int AggressiveCows(int n, int k, int[] stalls) {
+        Arrays.sort(stalls);  // Ensure stalls are sorted
+
+        int low = 1;
+        int high = stalls[n - 1] - stalls[0];
+        int result = 0;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+
+            if (canPlaceCows(stalls, n, k, mid)) {
+                result = mid; // feasible with `mid`, try for a larger distance
+                low = mid + 1;
+            } else {
+                high = mid - 1; // not feasible with `mid`, try for a smaller distance
+            }
+        }
+
+        return result;
+    }
+
+    public static ArrayList<Integer> SortTheNodesInBST(Node root) {
+        ArrayList<Integer> unSortedList = new ArrayList<>();
+        ArrayList<Integer> sortedList = new ArrayList<>();
+        inOrderTraversal(root, unSortedList);
+        Node outputRoot = null;
+        for(int value : unSortedList) {
+            outputRoot = insertBST(outputRoot,value);
+        }
+        inOrderTraversal(outputRoot, sortedList);
+        return sortedList;
+    }
+
+    public static int FindingTheSizeOfTheLargest(Node root) {
+        int[] maxBSTSize = new int[1];
+        largestBSTHelper(root, maxBSTSize);
+        return maxBSTSize[0];
+    }
+    //endregion
+
+    //region Tries
+    public static void InsertWordInTrie(String[] words, TrieNode root){
+        for(String word : words) {
+            insertIntoTrie(word,root);
+        }
+    }
+
+    public static boolean SearchInTrie(String word, TrieNode root) {
+        TrieNode currentNode = root;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            int index = ch - 'a';
+
+            if (currentNode.children[index] == null) {
+                return false;
+            }
+            currentNode = currentNode.children[index];
+        }
+        return currentNode.isend;
+    }
+
+    public static List<String> AutoCompleteUsingTrie(String prefix, TrieNode root) {
+        TrieNode currentNode = root;
+        for (char ch : prefix.toCharArray()) {
+            int index = ch - 'a';
+            if (currentNode.children[index] == null) {
+                return new ArrayList<>();  // No words with this prefix
+            }
+            currentNode = currentNode.children[index];
+        }
+
+        List<String> result = new ArrayList<>();
+        getWordsFromNode(currentNode, new StringBuilder(prefix), result);
+
+        Collections.sort(result);
+        return result;
+    }
+
+    public static int XorPairInTrie(TrieNode root, int[] ar, int n){
+        int maxXOR = 0;
+
+        // Insert all numbers into the Trie
+        for (int num : ar) {
+            insertIntoTrie(num,root);
+        }
+
+        // For each number, find the max XOR with other numbers
+        for (int num : ar) {
+            maxXOR = Math.max(maxXOR, findMaxXOR(num,root));
+        }
+
+        return maxXOR;
+    }
+
+    public static void RemoveWord(String word, TrieNode root) {
+        removeFromTrieNodeHelper(root,word,0);
+    }
+    //endregion
+
+    //region Heaps 1
+    public static int[] KthSmallestStream(int n, int k, int[] arr) {
+        // Max-heap to store the k smallest elements
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>((a, b) -> b - a);
+        int[] result = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            // Add the current element to the max-heap
+            maxHeap.offer(arr[i]);
+
+            // If heap size exceeds k, remove the largest element
+            if (maxHeap.size() > k) {
+                maxHeap.poll();
+            }
+
+            // If heap size is less than k, kth smallest element doesn't exist
+            if (maxHeap.size() < k) {
+                result[i] = -1;
+            } else {
+                // The kth smallest element is the root of the max-heap
+                result[i] = maxHeap.peek();
+            }
+        }
+
+        return result;
+    }
+
+    public static int FactorsOfKthLargest(int n, int k) {
+        List<Integer> factors = new ArrayList<>();
+
+        // Find all factors of n
+        for (int i = 1; i <= Math.sqrt(n); i++) {
+            if (n % i == 0) {
+                factors.add(i);  // "i" is a factor
+                if (i != n / i) {
+                    factors.add(n / i);  // "n/i" is also a factor
+                }
+            }
+        }
+
+        // Sort factors in ascending order
+        Collections.sort(factors);
+
+        // Check if there are enough factors for the kth largest
+        if (k > factors.size()) {
+            return -1;  // Not enough factors
+        }
+
+        // Return the kth largest factor
+        return factors.get(factors.size() - k);
+    }
+
+    public static String JumbleForTreasure(int[] digits, int n) {
+        Arrays.sort(digits);
+
+        // Create two numbers by alternately picking digits from sorted array
+        StringBuilder num1 = new StringBuilder();
+        StringBuilder num2 = new StringBuilder();
+
+        for (int i = 0; i < digits.length; i++) {
+            if (i % 2 == 0) {
+                num1.append(digits[i]);
+            } else {
+                num2.append(digits[i]);
+            }
+        }
+
+        // Convert the two number strings to integers and calculate their sum
+        int number1 = Integer.parseInt(num1.toString());
+        int number2 = Integer.parseInt(num2.toString());
+
+        return String.valueOf(number1 + number2);
+
+    }
+
+    public static String KthLargestElement(String[] arr, int k) {
+        // Min-heap to store the k largest elements
+        PriorityQueue<String> minHeap = new PriorityQueue<>(new Comparator<String>() {
+            @Override
+            public int compare(String a, String b) {
+                // Compare based on length first
+                if (a.length() != b.length()) {
+                    return Integer.compare(a.length(), b.length());
+                }
+                // If lengths are the same, compare lexicographically
+                return a.compareTo(b);
+            }
+        });
+
+        // Add elements to the heap
+        for (String num : arr) {
+            minHeap.offer(num);
+            if (minHeap.size() > k) {
+                minHeap.poll();  // Remove the smallest to keep only the k largest elements
+            }
+        }
+
+        // The root of the heap is the kth largest element
+        return minHeap.peek();
+    }
+
+    public static int[] LowestValueChallenge(int[] arr) {
+        // Step 1: Create a min-heap (PriorityQueue in Java)
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        // Step 2: Add all elements to the min-heap
+        for (int num : arr) {
+            minHeap.add(num);
+        }
+
+        int n = arr.length;
+        int[] ans = new int[n];
+
+        // Step 3: Simulate the game
+        for (int i = 0; i < n / 2; i++) {
+            // Alice removes the minimum element
+            int alice = minHeap.poll();
+            // Bob removes the next minimum element
+            int bob = minHeap.poll();
+
+            // Bob appends his element to ans first
+            ans[2 * i] = bob;
+            // Alice appends her element to ans next
+            ans[2 * i + 1] = alice;
+        }
+
+        return ans;
+    }
+    //endregion
+
+    //region Heaps 2
+    public static int LightWar(Vector<Integer> stones) {
+        // Step 1: Create a min-heap using a PriorityQueue
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        // Step 2: Add all stones to the min-heap
+        minHeap.addAll(stones);
+
+        // Step 3: Process the stones until one or none remain
+        while (minHeap.size() > 1) {
+            // Get the two lightest stones
+            int stone1 = minHeap.poll(); // The lightest stone
+            int stone2 = minHeap.poll(); // The second-lightest stone
+
+            // If they are not equal, insert the remaining weight back into the heap
+            if (stone1 != stone2) {
+                minHeap.add(stone2 - stone1);
+            }
+        }
+
+        // If there's one stone left, return its weight; otherwise return 0
+        return minHeap.isEmpty() ? 0 : minHeap.poll();
+    }
+
+    public static List<Integer> RowWar(int[][] mat, int k) {
+        int m = mat.length;
+        int n = mat[0].length;
+
+        // List to hold the count of soldiers and corresponding row index
+        List<int[]> soldierCount = new ArrayList<>();
+
+        // Step 1: Count soldiers in each row
+        for (int i = 0; i < m; i++) {
+            int count = 0;
+            for (int j = 0; j < n; j++) {
+                count += mat[i][j];
+            }
+            soldierCount.add(new int[]{count, i}); // Store count and index
+        }
+
+        // Step 2: Sort the list based on soldiers count and index
+        soldierCount.sort((a, b) -> {
+            if (a[0] == b[0]) {
+                return Integer.compare(a[1], b[1]); // Sort by index if counts are equal
+            }
+            return Integer.compare(a[0], b[0]); // Sort by soldier count
+        });
+
+        // Step 3: Collect the indices of the k weakest rows
+        int[] result = new int[k];
+        for (int i = 0; i < k; i++) {
+            result[i] = soldierCount.get(i)[1]; // Get the index of the weak row
+        }
+
+        return Arrays.stream(result).boxed().collect(Collectors.toList());
+    }
+
+    public static int KthSmallestElementInASortedMatrix(int[][] matrix, int k){
+        int n = matrix.length;
+        int low = matrix[0][0];
+        int high = matrix[n - 1][n - 1];
+
+        while (low < high) {
+            int mid = low + (high - low) / 2;
+            int count = countLessEqual(matrix, mid);
+
+            if (count < k) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+
+        return low;
+    }
+
+    public static List<List<String>> GroupingSimilarItems(List<List<String>> items) {
+        UnionFind uf = new UnionFind();
+        Map<String, String> emailToName = new LinkedHashMap<>();
+
+        // Step 1: Build union-find relationships
+        for (List<String> item : items) {
+            String name = item.get(0);
+            String firstEmail = item.get(1);
+            for (int i = 1; i < item.size(); i++) {
+                String email = item.get(i);
+                emailToName.put(email, name);  // Map each email to its name
+                uf.union(firstEmail, email);  // Union all emails in the same item
+            }
+        }
+
+        // Step 2: Collect emails by their root with LIFO order
+        Map<String, Stack<String>> groupedEmails = new LinkedHashMap<>();
+        for (String email : emailToName.keySet()) {
+            String root = uf.find(email);
+            groupedEmails.computeIfAbsent(root, k -> new Stack<>()).push(email);
+        }
+
+        // Step 3: Print the result in the desired format
+        List<List<String>> result = new ArrayList<>();
+        for (String root : groupedEmails.keySet()) {
+            String name = emailToName.get(root);  // Get the name associated with the root email
+            List<String> resultItem = new ArrayList<>();
+            resultItem.add(name);
+            while (!groupedEmails.get(root).isEmpty()) {
+                String email = groupedEmails.get(root).pop();
+                resultItem.add(email);
+            }
+            result.add(resultItem);
+        }
+        return result;
+    }
+
+    public static List<Long> MostFrequentId(int[] arr, int[] freq) {
+        int n = arr.length;
+        int[] ans = new int[n];
+        Map<Integer, Integer> frequencyMap = new HashMap<>();
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+
+        for (int i = 0; i < n; i++) {
+            int id = arr[i];
+            int change = freq[i];
+
+            // Get current count of ID, defaulting to 0 if it doesn't exist
+            int currentCount = frequencyMap.getOrDefault(id, 0);
+            int newCount = currentCount + change;
+
+            // If the ID exists in the map, remove its old frequency from the heap
+            if (currentCount > 0) {
+                maxHeap.remove(currentCount);
+            }
+
+            // Update the frequency map with the new count
+            if (newCount > 0) {
+                frequencyMap.put(id, newCount);
+                maxHeap.add(newCount);
+            } else {
+                frequencyMap.remove(id);
+            }
+
+            // Find the max frequency after the update
+            ans[i] = maxHeap.isEmpty() ? 0 : maxHeap.peek();
+        }
+
+        List<Long> result = new ArrayList<>();
+        for(int a : ans) {
+            result.add((long) a);
+        }
+        return result;
+    }
+    //endregion
+
+    //region Heaps 3
+    public static int MedianAtEveryStep(int num) {
+        medianData.add(num);
+        Collections.sort(medianData);
+        int n = medianData.size();
+
+        if(n == 1) {
+            return medianData.get(0);
+        } else if(n%2 == 0) {
+            int midIndex = n/2;
+            return (medianData.get(midIndex-1) + medianData.get(midIndex))/2;
+        } else {
+            int midIndex = n/2;
+            return medianData.get(midIndex+1);
+        }
+    }
+    //endregion
+
+    //region Graphs 1
+    //endregion
+
+    //region Graphs 2
+    //endregion
+
+    //region Graphs 3
     //endregion
 
     //region Private Methods
@@ -649,6 +1102,237 @@ public class AdvancedDataStructure {
         inOrderTraversal(node.left);
         values.add(node.val);
         inOrderTraversal(node.right);
+    }
+
+    private static boolean isPossible(int[] books, int n, int students, int maxPages) {
+        int studentCount = 1;
+        int currentSum = 0;
+
+        for (int pages : books) {
+            if (currentSum + pages > maxPages) {
+                studentCount++;
+                currentSum = pages;
+
+                if (studentCount > students) {
+                    return false;
+                }
+            } else {
+                currentSum += pages;
+            }
+        }
+
+        return true;
+    }
+
+    private static int getMax(int[] books) {
+        int max = books[0];
+        for (int pages : books) {
+            max = Math.max(max, pages);
+        }
+        return max;
+    }
+
+    private static int getSum(int[] books) {
+        int sum = 0;
+        for (int pages : books) {
+            sum += pages;
+        }
+        return sum;
+    }
+
+    private static boolean canPlaceCows(int[] stalls, int n, int k, int distance) {
+        int count = 1; // Place the first cow in the first stall
+        int lastPosition = stalls[0];
+
+        for (int i = 1; i < n; i++) {
+            if (stalls[i] - lastPosition >= distance) {
+                count++;  // Place a cow in this stall
+                lastPosition = stalls[i];
+
+                if (count == k) {
+                    return true;  // All cows have been placed successfully
+                }
+            }
+        }
+
+        return false;  // Could not place all cows with at least `distance` separation
+    }
+
+    public static Node insertBST(Node root, int value) {
+        if (root == null) {
+            return new Node(value);
+        }
+        if (value < root.data) {
+            root.left = insertBST(root.left, value);
+        } else if (value > root.data) {
+            root.right = insertBST(root.right, value);
+        }
+        return root;
+    }
+
+    private static void inOrderTraversal(Node root, List<Integer> sortedList) {
+        if (root != null) {
+            inOrderTraversal(root.left, sortedList);
+            sortedList.add(root.data);
+            inOrderTraversal(root.right, sortedList);
+        }
+    }
+
+    private static SubTreeInfo largestBSTHelper(Node node, int[] maxBSTSize) {
+        // Base case
+        if (node == null) {
+            return new SubTreeInfo(true, 0, Integer.MAX_VALUE, Integer.MIN_VALUE);
+        }
+
+        // Recursively check left and right subtrees
+        SubTreeInfo leftInfo = largestBSTHelper(node.left, maxBSTSize);
+        SubTreeInfo rightInfo = largestBSTHelper(node.right, maxBSTSize);
+
+        // Check if the current subtree rooted at `node` is a BST
+        if (leftInfo.isBST && rightInfo.isBST && node.data > leftInfo.max && node.data < rightInfo.min) {
+            int size = 1 + leftInfo.size + rightInfo.size;
+            maxBSTSize[0] = Math.max(maxBSTSize[0], size);
+            int min = Math.min(node.data, leftInfo.min);
+            int max = Math.max(node.data, rightInfo.max);
+            return new SubTreeInfo(true, size, min, max);
+        } else {
+            return new SubTreeInfo(false, 0, 0, 0);
+        }
+    }
+
+    private static void insertIntoTrie(String word, TrieNode root) {
+        TrieNode currentNode = root;
+
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            int index = ch - 'a';
+
+            // If the character node doesn't exist, create it
+            if (currentNode.children[index] == null) {
+                currentNode.children[index] = new TrieNode(ch);
+            }
+
+            // Move to the next node
+            currentNode = currentNode.children[index];
+        }
+
+        // Mark the end of the word
+        currentNode.isend = true;
+        System.out.println("Yes");
+    }
+
+    private static void insertIntoTrie(int num, TrieNode root) {
+        TrieNode current = root;
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (bit == 0) {
+                if (current.left == null) {
+                    current.left = new TrieNode();
+                }
+                current = current.left;
+            } else {
+                if (current.right == null) {
+                    current.right = new TrieNode();
+                }
+                current = current.right;
+            }
+        }
+    }
+
+    private static void getWordsFromNode(TrieNode node, StringBuilder prefix, List<String> result) {
+        if (node.isend) {
+            result.add(prefix.toString());
+        }
+        for (char ch = 'a'; ch <= 'z'; ch++) {
+            int index = ch - 'a';
+            if (node.children[index] != null) {
+                prefix.append(ch);
+                getWordsFromNode(node.children[index], prefix, result);
+                prefix.deleteCharAt(prefix.length() - 1);  // Backtrack
+            }
+        }
+    }
+
+    private static int findMaxXOR(int num, TrieNode root) {
+        TrieNode current = root;
+        int maxXOR = 0;
+
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            // Check if we can take the opposite bit
+            if (bit == 0) {
+                if (current.right != null) { // Go right to maximize XOR
+                    maxXOR |= (1 << i);
+                    current = current.right;
+                } else { // Otherwise, go left
+                    current = current.left;
+                }
+            } else {
+                if (current.left != null) { // Go left to maximize XOR
+                    maxXOR |= (1 << i);
+                    current = current.left;
+                } else { // Otherwise, go right
+                    current = current.right;
+                }
+            }
+        }
+
+        return maxXOR;
+    }
+
+    private static boolean removeFromTrieNodeHelper(TrieNode current, String word, int depth) {
+        if (current == null) {
+            return false;
+        }
+
+        // If we've reached the end of the word
+        if (depth == word.length()) {
+            // Word doesn't exist
+            if (!current.isend) {
+                return false;
+            }
+            // Mark the end of word as false
+            current.isend = false;
+
+            // If current node has no other children, return true (node can be deleted)
+            return isTrieNodeEmpty(current);
+        }
+
+        int index = word.charAt(depth) - 'a';
+        if (removeFromTrieNodeHelper(current.children[index], word, depth + 1)) {
+            current.children[index] = null;
+
+            // Check if current node can be deleted
+            return !current.isend && isTrieNodeEmpty(current);
+        }
+        return false;
+    }
+
+    private static boolean isTrieNodeEmpty(TrieNode node) {
+        for (TrieNode child : node.children) {
+            if (child != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int countLessEqual(int[][] matrix, int mid) {
+        int count = 0;
+        int n = matrix.length;
+        int row = n - 1; // Start from the bottom left corner
+        int col = 0;
+
+        while (row >= 0 && col < n) {
+            if (matrix[row][col] <= mid) {
+                count += (row + 1);
+                col++;
+            } else {
+                row--;
+            }
+        }
+
+        return count;
     }
     //endregion
 }

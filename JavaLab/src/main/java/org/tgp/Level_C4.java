@@ -47,7 +47,7 @@ public class Level_C4 {
         return maxGCD;
     }
 
-    public String RemoveDuplicateLetters(String s) {
+    public static String RemoveDuplicateLetters(String s) {
         TreeSet<Character> uniqueLetters = new TreeSet<>();
         for(char a : s.toCharArray()) {
             uniqueLetters.add(a);
