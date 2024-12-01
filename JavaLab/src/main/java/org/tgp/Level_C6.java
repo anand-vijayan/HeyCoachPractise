@@ -3,74 +3,72 @@ package org.tgp;
 import java.util.*;
 
 public class Level_C6 {
-    public static List<Integer> MedianInADataStream(List<Integer> arr, int n) {
-        List<Integer> result = new ArrayList<>();
-        PriorityQueue<Integer> lowerHalf = new PriorityQueue<>(Collections.reverseOrder()); // Max-Heap
-        PriorityQueue<Integer> upperHalf = new PriorityQueue<>(); // Min-Heap
+    public int Tribonacci(int n) {
+        // Handle base cases
+        if (n == 0) {
+            return 0;
+        } else if (n == 1 || n == 2) {
+            return 1;
+        }
 
-        for (int num : arr) {
-            // Insert into appropriate heap
-            if (lowerHalf.isEmpty() || num <= lowerHalf.peek()) {
-                lowerHalf.add(num);
-            } else {
-                upperHalf.add(num);
+        // Initialize base values
+        int t0 = 0, t1 = 1, t2 = 1;
+
+        // Compute Tribonacci numbers iteratively
+        for (int i = 3; i <= n; i++) {
+            int tNext = t0 + t1 + t2;
+            t0 = t1;
+            t1 = t2;
+            t2 = tNext;
+        }
+
+        return t2;
+
+    }
+
+    public int[] NextGreaterElements(int[] nums) {
+        int n = nums.length;
+        int[] result = new int[n];
+        Arrays.fill(result, -1); // Initialize result array with -1
+        Stack<Integer> stack = new Stack<>(); // Stack to hold indices
+
+        // Traverse the array twice
+        for (int i = 0; i < 2 * n; i++) {
+            int currentIndex = i % n;
+            // Process stack for current element
+            while (!stack.isEmpty() && nums[stack.peek()] < nums[currentIndex]) {
+                int index = stack.pop();
+                result[index] = nums[currentIndex];
             }
-
-            // Balance the heaps
-            if (lowerHalf.size() > upperHalf.size() + 1) {
-                upperHalf.add(lowerHalf.poll());
-            } else if (upperHalf.size() > lowerHalf.size()) {
-                lowerHalf.add(upperHalf.poll());
-            }
-
-            // Calculate median
-            if (lowerHalf.size() == upperHalf.size()) {
-                result.add((lowerHalf.peek() + upperHalf.peek()) / 2);
-            } else {
-                result.add(lowerHalf.peek());
+            // Push the index onto the stack if in the first pass
+            if (i < n) {
+                stack.push(currentIndex);
             }
         }
 
         return result;
+
     }
 
-    public static List<List<Integer>> RotateImage(List<List<Integer>> matrix) {
-        int n = matrix.size();
-
-        // Step 1: Transpose the matrix
+    public List<Integer> HelpStudents(List<Integer> marks, int n) {
+        List<Integer> result = new ArrayList<>();
+        // Initialize the result with -1
         for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                // Swap elements (i, j) and (j, i)
-                int temp = matrix.get(i).get(j);
-                matrix.get(i).set(j, matrix.get(j).get(i));
-                matrix.get(j).set(i, temp);
-            }
+            result.add(-1);
         }
+        Stack<Integer> stack = new Stack<>(); // Stack to store indices
 
-        // Step 2: Reverse each row
         for (int i = 0; i < n; i++) {
-            Collections.reverse(matrix.get(i));
-        }
-        return matrix;
-    }
-
-    public int[][] ReconstructQueue(int[][] people) {
-        // Step 1: Sort by height (descending), and by k (ascending)
-        Arrays.sort(people, (a, b) -> {
-            if (a[0] != b[0]) {
-                return b[0] - a[0]; // Descending order of height
-            } else {
-                return a[1] - b[1]; // Ascending order of k
+            // Process the stack for the current student
+            while (!stack.isEmpty() && marks.get(stack.peek()) > marks.get(i)) {
+                int index = stack.pop();
+                result.set(index, marks.get(i));
             }
-        });
-
-        // Step 2: Insert into queue based on k value
-        List<int[]> queue = new LinkedList<>();
-        for (int[] person : people) {
-            queue.add(person[1], person); // Insert at index k
+            // Push the current index onto the stack
+            stack.push(i);
         }
 
-        return queue.toArray(new int[queue.size()][]);
+        return result;
 
     }
 }
