@@ -527,8 +527,8 @@ public class Stacks {
     //endregion
 
     //region Binary Tree Based
-    public static void IncreasingOrderSearchTree(TreeNode root){
-        if(root==null) return;
+    public static TreeNode IncreasingOrderSearchTree(TreeNode root){
+        if(root==null) return null;
         IncreasingOrderSearchTree(root.left);
         if(prev!=null) {
             root.left=null; // we no  longer needs the left  side of the node, so set it to null
@@ -537,6 +537,7 @@ public class Stacks {
         if(head==null) head=root; // record the most left node as it will be our root
         prev=root; //keep track of the prev node
         IncreasingOrderSearchTree(root.right);
+        return head;
     }
 
     public static List<Integer> BinaryTreeInorderTraversal(TreeNode root) {
