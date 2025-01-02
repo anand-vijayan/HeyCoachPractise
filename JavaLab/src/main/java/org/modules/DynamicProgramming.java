@@ -210,11 +210,30 @@ public class DynamicProgramming {
         return TheNewClassmateHelper(n, s, dp);
     }
 
-    public static int CrossingTheJungle(int n, int m, int[][] grid) {
-        //To:DO
+    public static int CrossingTheJungle(int n, int m, int[][] ar) {
+        // Write your code here
+        int[][] resultMatrix = new int[n][m];
+        resultMatrix[0][0] = ar[0][0];
 
-        // Return the minimum initial experience required
-        return grid[0][0];
+        for (int rowIndex = 1; rowIndex < n; rowIndex++) {
+            resultMatrix[rowIndex][0] = ar[rowIndex][0] + resultMatrix[rowIndex - 1][0];
+        }
+
+        for (int colIndex = 1; colIndex < m; colIndex++) {
+            resultMatrix[0][colIndex] = ar[0][colIndex] + resultMatrix[0][colIndex - 1];
+        }
+
+        for (int rowIndex = 1; rowIndex < n; rowIndex++) {
+            for (int colIndex = 1; colIndex < m; colIndex++) {
+                resultMatrix[rowIndex][colIndex] = Math.max(resultMatrix[rowIndex][colIndex - 1], resultMatrix[rowIndex - 1][colIndex]) + ar[rowIndex][colIndex];
+            }
+        }
+
+        if (resultMatrix[n - 1][m - 1] > 0) {
+            return -1 * resultMatrix[n - 1][m - 1] + 1;
+        } else {
+            return Math.abs(resultMatrix[n - 1][m - 1]) + 1;
+        }
     }
     //endregion
 

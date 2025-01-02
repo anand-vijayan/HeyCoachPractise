@@ -1,6 +1,8 @@
 package org.modules;
 
 import org.dto.*;
+import org.helpers.MaxFlow;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +20,9 @@ public class AdvancedDataStructure {
     private static Integer prevValue = null;
     private static final List<Integer> values = new ArrayList<>();
     private static final List<Integer> medianData = new ArrayList<>();
+    private static final PriorityQueue<Integer> lowerHalfHeap = new PriorityQueue<>(Collections.reverseOrder());
+    private static final PriorityQueue<Integer> upperHalfHeap = new PriorityQueue<>();
+    private static Pair<Integer, Integer> temp;
     //endregion
 
     //region Linked Lists 1
@@ -787,19 +792,28 @@ public class AdvancedDataStructure {
     //endregion
 
     //region Heaps 3
-    public static int MedianAtEveryStep(int num) {
-        medianData.add(num);
-        Collections.sort(medianData);
-        int n = medianData.size();
+    public int MedianAtEveryStep(int currentNumber) {
+        lowerHalfHeap.add(currentNumber);
 
-        if(n == 1) {
-            return medianData.get(0);
-        } else if(n%2 == 0) {
-            int midIndex = n/2;
-            return (medianData.get(midIndex-1) + medianData.get(midIndex))/2;
+        // Ensure the max-heap property (top of lowerHalfHeap <= top of upperHalfHeap)
+        if (!upperHalfHeap.isEmpty() && lowerHalfHeap.peek() > upperHalfHeap.peek()) {
+            upperHalfHeap.add(lowerHalfHeap.poll());
+        }
+
+        // Balance heaps if needed
+        if (lowerHalfHeap.size() > upperHalfHeap.size() + 1) {
+            upperHalfHeap.add(lowerHalfHeap.poll());
+        } else if (upperHalfHeap.size() > lowerHalfHeap.size() + 1) {
+            lowerHalfHeap.add(upperHalfHeap.poll());
+        }
+
+        // Return the median
+        if (lowerHalfHeap.size() == upperHalfHeap.size()) {
+            return (lowerHalfHeap.peek() + upperHalfHeap.peek()) / 2;
+        } else if (lowerHalfHeap.size() > upperHalfHeap.size()) {
+            return lowerHalfHeap.peek();
         } else {
-            int midIndex = n/2;
-            return medianData.get(midIndex+1);
+            return upperHalfHeap.peek();
         }
     }
 
@@ -915,7 +929,7 @@ public class AdvancedDataStructure {
     //endregion
 
     //region Graphs 1
-    public static double[] calcEquation(List<List<String>> equations, List<Double> values, List<List<String>> queries) {
+    public static double[] EvaluateDivision(List<List<String>> equations, List<Double> values, List<List<String>> queries) {
         UnionFind uf = new UnionFind();
 
         // Initialize union-find structure and process equations
@@ -950,14 +964,14 @@ public class AdvancedDataStructure {
 
     }
 
-    public static int shortestPath(int N, int[][] edges, int S, int D) {
+    public static int ShortestPathBetweenTwoNodes(int N, int[][] edges, int S, int D) {
         int E = edges.length;
         // Step 1: Build the graph as an adjacency list
         Map<Integer, List<Integer>> graph = new HashMap<>();
 
-        for (int i = 0; i < E; i++) {
-            int u = edges[i][0];
-            int v = edges[i][1];
+        for (int[] edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
             graph.putIfAbsent(u, new ArrayList<>());
             graph.putIfAbsent(v, new ArrayList<>());
             graph.get(u).add(v);
@@ -995,15 +1009,436 @@ public class AdvancedDataStructure {
 
 
     }
+
+    public static List<String> DijkstraAlgorithm(int n, List<List<Pair<Integer, Integer>>> graph, int start) {
+        Map<Integer, List<int[]>> graphMap = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            graphMap.put(i, new ArrayList<>());
+        }
+
+        for (int i = 0; i < graph.size(); i++) {
+            //System.out.println("Node " + i + " has neighbors:");
+            for (Pair<Integer,Integer> neighbor : graph.get(i)) {
+                //System.out.println("    " + neighbor.vertex + ", " + neighbor.weight);
+                graphMap.get(i).add(new int[] {neighbor.vertex, neighbor.weight});
+            }
+        }
+
+        int[] distances = dijkstraHelper(n, graphMap, start);
+        List<String> result = new ArrayList<>();
+
+        // Print results
+        for (int i = 0; i < n; i++) {
+            result.add(i + " " + (distances[i] == Integer.MAX_VALUE ? "Infinity" : distances[i]));
+        }
+
+        return result;
+    }
+
+    public static boolean DAG(int n, List<int[]> edges) {
+        // Array to keep track of visited nodes: 0 = unvisited, 1 = visiting, 2 = visited
+        int[] visited = new int[n];
+        List<List<Integer>> graph = new ArrayList<>();
+        for(int[] temp : edges) {
+            List<Integer> tempList = new ArrayList<>();
+            for(int val : temp) {
+                tempList.add(val);
+            }
+            graph.add(tempList);
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (visited[i] == 0) {
+                if (hasCycle(graph, i, visited)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+
+    }
+
+    public static int FindingStronglyConnectedComponents(int n, List<List<Integer>> a) {
+        // Initialize graph and its transpose
+        List<List<Integer>> graph = new ArrayList<>();
+        List<List<Integer>> transposedGraph = new ArrayList<>();
+
+        for (int i = 0; i <= n; i++) {
+            graph.add(new ArrayList<>());
+            transposedGraph.add(new ArrayList<>());
+        }
+
+        // Input edges
+        for (List<Integer> temp : a) {
+            int u = temp.get(0);
+            int v = temp.get(1);
+            graph.get(u).add(v);
+            transposedGraph.get(v).add(u);
+        }
+
+        // Step 1: Perform DFS and store finish times in a stack
+        Stack<Integer> stack = new Stack<>();
+        boolean[] visited = new boolean[n + 1];
+
+        for (int i = 1; i <= n; i++) {
+            if (!visited[i]) {
+                dfs(graph, i, visited, stack);
+            }
+        }
+
+        // Step 2: Transpose the graph (already done during input)
+
+        // Step 3: Perform DFS on the transposed graph
+        Arrays.fill(visited, false);
+        int sccCount = 0;
+
+        while (!stack.isEmpty()) {
+            int node = stack.pop();
+            if (!visited[node]) {
+                dfsTransposed(transposedGraph, node, visited);
+                sccCount++; // Each DFS call corresponds to one SCC
+            }
+        }
+
+        // Output the number of SCCs
+        return sccCount;
+    }
     //endregion
 
     //region Graphs 2
+    public static int MaximumFlowInAFlowNetwork(int n, int m, int[][] edge) {
+
+        MaxFlow.FlowNetwork network = new MaxFlow.FlowNetwork(n + 1);
+
+        for (int[] temp : edge) {
+            int u = temp[0];
+            int v = temp[1];
+            long w = temp[2];
+            network.addEdge(u, v, w);
+        }
+
+        // Source node is 1, sink node is n
+        int source = 1;
+
+        MaxFlow.Dinic dinic = new MaxFlow.Dinic(network, source, n);
+        return (int) dinic.maxFlow();
+    }
+
+    public static List<Integer> TopologicalSortingOfADirectedAcyclicGraph(int n, List<int[]> edges) {
+        List<Integer> result = new ArrayList<>();
+        int[] inDegree = new int[n]; // Array to store in-degrees of nodes
+        List<List<Integer>> adjList = new ArrayList<>();
+
+        // Initialize adjacency list
+        for (int i = 0; i < n; i++) {
+            adjList.add(new ArrayList<>());
+        }
+
+        // Build adjacency list and in-degree array
+        for (int[] edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+            adjList.get(u).add(v);
+            inDegree[v]++;
+        }
+
+        // Add all nodes with in-degree 0 to the queue
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            if (inDegree[i] == 0) {
+                queue.add(i);
+            }
+        }
+
+        // Process the nodes
+        while (!queue.isEmpty()) {
+            int node = queue.poll();
+            result.add(node);
+
+            // Reduce in-degree of adjacent nodes
+            for (int neighbor : adjList.get(node)) {
+                inDegree[neighbor]--;
+                if (inDegree[neighbor] == 0) {
+                    queue.add(neighbor);
+                }
+            }
+        }
+
+        // Check if topological sorting is possible (no cycle)
+        if (result.size() != n) {
+            throw new IllegalArgumentException("The graph is not a DAG.");
+        }
+
+        return result;
+    }
+
+    public static int MinimumNumberOfEdgesToMakeADirectedGraphStronglyConnected(int[] source, int n, int m, int[] dest) {
+        int[][] edges = new int[m][2];
+        for (int i = 0; i < m; i++) {
+            edges[i][0] = source[i];
+        }
+        for (int i = 0; i < m; i++) {
+            edges[i][1] = dest[i];
+        }
+
+        return minEdgesToAdd(n, edges);
+    }
+
+    public static boolean CoursePlanner(int numCourses, int[][] prerequisites) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) {
+            graph.add(new ArrayList<>());
+        }
+
+        // Populate the graph
+        for (int[] prereq : prerequisites) {
+            int course = prereq[0];
+            int prerequisite = prereq[1];
+            graph.get(course).add(prerequisite);
+        }
+
+        // Arrays to track the visit state of each course
+        // 0 -> unvisited, 1 -> visiting, 2 -> visited
+        int[] visitStatus = new int[numCourses];
+
+        // Perform DFS for each course
+        for (int i = 0; i < numCourses; i++) {
+            if (visitStatus[i] == 0) {
+                if (hasCycle(i, graph, visitStatus)) {
+                    return false; // Cycle detected
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static List<List<Integer>> PacificAtlanticWaterFlow(int[][] heights) {
+        int m = heights.length;
+        int n = heights[0].length;
+        List<List<Integer>> result = new ArrayList<>();
+
+        // Boolean arrays to mark cells that can reach Pacific and Atlantic oceans
+        boolean[][] pacificReach = new boolean[m][n];
+        boolean[][] atlanticReach = new boolean[m][n];
+
+        // Perform DFS from Pacific and Atlantic edges
+        for (int i = 0; i < m; i++) {
+            dfs(heights, pacificReach, i, 0); // Left edge (Pacific)
+            dfs(heights, atlanticReach, i, n - 1); // Right edge (Atlantic)
+        }
+
+        for (int j = 0; j < n; j++) {
+            dfs(heights, pacificReach, 0, j); // Top edge (Pacific)
+            dfs(heights, atlanticReach, m - 1, j); // Bottom edge (Atlantic)
+        }
+
+        // Find cells that can reach both oceans
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (pacificReach[i][j] && atlanticReach[i][j]) {
+                    result.add(Arrays.asList(i, j));
+                }
+            }
+        }
+
+        return result;
+    }
     //endregion
 
     //region Graphs 3
+    public static int OptimalFlightCost(int n, int[][] flights, int src, int dst, int k) {
+        // Step 1: Build the graph (adjacency list representation)
+        Map<Integer, List<int[]>> graph = new HashMap<>();
+        for (int[] flight : flights) {
+            graph.putIfAbsent(flight[0], new ArrayList<>());
+            graph.get(flight[0]).add(new int[]{flight[1], flight[2]});
+        }
+
+        // Step 2: Priority queue to store the current cost, city, and number of stops
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.offer(new int[]{0, src, 0});  // {cost, city, stops}
+
+        // Step 3: Visited array to track the minimum cost at each city with a certain number of stops
+        int[][] visited = new int[n][k + 2];  // k+2 to handle up to k stops + the first 0 stops
+        for (int[] arr : visited) {
+            Arrays.fill(arr, Integer.MAX_VALUE);
+        }
+        visited[src][0] = 0;
+
+        // Step 4: Perform BFS with priority queue
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int cost = curr[0], city = curr[1], stops = curr[2];
+
+            // If we reach the destination, return the cost
+            if (city == dst) {
+                return cost;
+            }
+
+            // If we have reached the max number of stops, continue
+            if (stops > k) continue;
+
+            // Explore the neighbors (i.e., flights from the current city)
+            if (graph.containsKey(city)) {
+                for (int[] neighbor : graph.get(city)) {
+                    int nextCity = neighbor[0], price = neighbor[1];
+                    int newCost = cost + price;
+
+                    // If the new path is cheaper and hasn't been visited yet at this number of stops
+                    if (newCost < visited[nextCity][stops + 1]) {
+                        visited[nextCity][stops + 1] = newCost;
+                        pq.offer(new int[]{newCost, nextCity, stops + 1});
+                    }
+                }
+            }
+        }
+
+        // If we haven't found a path to the destination, return -1
+        return -1;
+    }
+
+    public static int[] IdentifyingRedundantConnection(int[][] edges) {
+        int n = edges.length;  // The number of edges is the same as the number of nodes minus one
+        if(n == 1) {
+            return new int[0];
+        }
+
+        // Union-Find (Disjoint Set) setup
+        int[] parent = new int[n + 1]; // parent[i] will store the parent of node i
+        int[] rank = new int[n + 1];   // rank[i] will store the rank of node i for efficient union
+
+        // Initialize parent array: initially, each node is its own parent
+        for (int i = 1; i <= n; i++) {
+            parent[i] = i;
+            rank[i] = 0;
+        }
+
+        // Iterate through the edges
+        for (int[] edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+
+            // If u and v are already connected, this edge is the redundant one
+            if (find(u, parent) == find(v, parent)) {
+                return edge; // Return the redundant edge
+            } else {
+                union(u, v, parent, rank); // Union the two nodes
+            }
+        }
+
+        return new int[0];
+    }
+
+    public static List<Integer> MinimumHeightTree(int n, int[][] edges) {
+        if (n == 1) {
+            return Arrays.asList(0);  // If there's only one node, it's the root
+        }
+
+        // Step 1: Build the adjacency list from edges
+        List<List<Integer>> adjList = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            adjList.add(new ArrayList<>());
+        }
+        for (int[] edge : edges) {
+            adjList.get(edge[0]).add(edge[1]);
+            adjList.get(edge[1]).add(edge[0]);
+        }
+
+        // Step 2: Find the farthest node from an arbitrary node (e.g., node 0)
+        int[] resultFromFirstBFS = bfs(0, n, adjList);
+        int farthestNode = resultFromFirstBFS[0];  // Farthest node from node 0
+
+        // Step 3: Find the farthest node from the farthest node (this gives us the diameter)
+        int[] resultFromSecondBFS = bfs(farthestNode, n, adjList);
+        int otherEnd = resultFromSecondBFS[0];  // Farthest node from 'farthestNode'
+        int diameter = resultFromSecondBFS[1];  // The diameter of the tree
+
+        // Step 4: The centers of the tree are at the middle of the path from 'farthestNode' to 'otherEnd'
+        List<Integer> centers = new ArrayList<>();
+        Queue<Integer> queue = new LinkedList<>();
+        int[] dist = new int[n];
+        Arrays.fill(dist, -1);
+        dist[farthestNode] = 0;
+        queue.offer(farthestNode);
+
+        // BFS to find the centers (the middle of the longest path)
+        while (!queue.isEmpty()) {
+            int node = queue.poll();
+            for (int neighbor : adjList.get(node)) {
+                if (dist[neighbor] == -1) {
+                    dist[neighbor] = dist[node] + 1;
+                    queue.offer(neighbor);
+                }
+            }
+        }
+
+        // Collect the centers, which are the nodes around the middle of the longest path
+        int midDistance = diameter / 2;
+        for (int i = 0; i < n; i++) {
+            if (dist[i] == midDistance || dist[i] == midDistance + 1) {
+                centers.add(i);
+            }
+        }
+
+        return centers;
+    }
     //endregion
 
     //region Private Methods
+    private static int[] bfs(int start, int n, List<List<Integer>> adjList) {
+        int[] dist = new int[n];
+        Arrays.fill(dist, -1);
+        dist[start] = 0;
+
+        Queue<Integer> queue = new LinkedList<>();
+        queue.offer(start);
+
+        int farthestNode = start;
+        int maxDist = 0;
+
+        while (!queue.isEmpty()) {
+            int node = queue.poll();
+            for (int neighbor : adjList.get(node)) {
+                if (dist[neighbor] == -1) { // not visited
+                    dist[neighbor] = dist[node] + 1;
+                    queue.offer(neighbor);
+
+                    if (dist[neighbor] > maxDist) {
+                        maxDist = dist[neighbor];
+                        farthestNode = neighbor;
+                    }
+                }
+            }
+        }
+
+        return new int[] {farthestNode, maxDist};  // return the farthest node and its distance
+    }
+
+    private static int find(int x, int[] parent) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x], parent);  // Path compression
+        }
+        return parent[x];
+    }
+
+    private static void union(int x, int y, int[] parent, int[] rank) {
+        int rootX = find(x, parent);
+        int rootY = find(y, parent);
+
+        if (rootX != rootY) {
+            // Union by rank: attach the smaller tree to the root of the larger tree
+            if (rank[rootX] > rank[rootY]) {
+                parent[rootY] = rootX;
+            } else if (rank[rootX] < rank[rootY]) {
+                parent[rootX] = rootY;
+            } else {
+                parent[rootY] = rootX;
+                rank[rootX]++;
+            }
+        }
+    }
+
     private static int getLength(ListNode head) {
         int count = 0;
         ListNode curr = head;
@@ -1548,6 +1983,227 @@ public class AdvancedDataStructure {
 
             // Recursively heapify the affected subtree
             heapify(arr, n, largest);
+        }
+    }
+
+    private static int[] dijkstraHelper(int n, Map<Integer, List<int[]>> graph, int source) {
+        int[] distances = new int[n];
+        Arrays.fill(distances, Integer.MAX_VALUE);
+        distances[source] = 0;
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
+        pq.offer(new int[] { source, 0 }); // {node, distance}
+
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int currentNode = current[0];
+            int currentDistance = current[1];
+
+            // If the distance in the priority queue is outdated, skip
+            if (currentDistance > distances[currentNode]) continue;
+
+            for (int[] neighbor : graph.get(currentNode)) {
+                int nextNode = neighbor[0];
+                int weight = neighbor[1];
+                int newDistance = currentDistance + weight;
+
+                if (newDistance < distances[nextNode]) {
+                    distances[nextNode] = newDistance;
+                    pq.offer(new int[] { nextNode, newDistance });
+                }
+            }
+        }
+
+        return distances;
+    }
+
+    private static boolean hasCycle(List<List<Integer>> graph, int node, int[] visited) {
+        visited[node] = 1; // Mark as visiting
+
+        for (int neighbor : graph.get(node)) {
+            if (visited[neighbor] == 1) {
+                // Found a cycle
+                return true;
+            }
+            if (visited[neighbor] == 0) {
+                if (hasCycle(graph, neighbor, visited)) {
+                    return true;
+                }
+            }
+        }
+
+        visited[node] = 2; // Mark as visited
+        return false;
+    }
+
+    private static void dfs(List<List<Integer>> graph, int node, boolean[] visited, Stack<Integer> stack) {
+        visited[node] = true;
+        for (int neighbor : graph.get(node)) {
+            if (!visited[neighbor]) {
+                dfs(graph, neighbor, visited, stack);
+            }
+        }
+        stack.push(node); // Push the node onto the stack after visiting
+    }
+
+    private static void dfsTransposed(List<List<Integer>> transposedGraph, int node, boolean[] visited) {
+        visited[node] = true;
+        for (int neighbor : transposedGraph.get(node)) {
+            if (!visited[neighbor]) {
+                dfsTransposed(transposedGraph, neighbor, visited);
+            }
+        }
+    }
+
+    public static int minEdgesToAdd(int n, int[][] edges) {
+        Graph graph = new Graph(n);
+
+        // Build the graph
+        for (int[] edge : edges) {
+            graph.addEdge(edge[0] - 1, edge[1] - 1); // Convert to 0-based indexing
+        }
+
+        // Find SCCs
+        List<List<Integer>> sccs = findSCCs(graph);
+
+        if (sccs.size() == 1) {
+            // Already strongly connected
+            return 0;
+        }
+
+        // Build the condensed graph
+        int sccCount = sccs.size();
+        boolean[] hasInDegree = new boolean[sccCount];
+        boolean[] hasOutDegree = new boolean[sccCount];
+        Map<Integer, Integer> nodeToSCC = new HashMap<>();
+        for (int i = 0; i < sccs.size(); i++) {
+            for (int node : sccs.get(i)) {
+                nodeToSCC.put(node, i);
+            }
+        }
+
+        for (int u = 0; u < n; u++) {
+            for (int v : graph.adjList.get(u)) {
+                int fromSCC = nodeToSCC.get(u);
+                int toSCC = nodeToSCC.get(v);
+                if (fromSCC != toSCC) {
+                    hasOutDegree[fromSCC] = true;
+                    hasInDegree[toSCC] = true;
+                }
+            }
+        }
+
+        // Count SCCs with no in-degree or out-degree
+        int inZero = 0, outZero = 0;
+        for (int i = 0; i < sccCount; i++) {
+            if (!hasInDegree[i]) inZero++;
+            if (!hasOutDegree[i]) outZero++;
+        }
+
+        // Return the maximum of inZero and outZero
+        return Math.max(inZero, outZero);
+    }
+
+    private static List<List<Integer>> findSCCs(Graph graph) {
+        int vertices = graph.vertices;
+        Stack<Integer> stack = new Stack<>();
+        boolean[] visited = new boolean[vertices];
+
+        // Step 1: Perform DFS and store nodes by finish time
+        for (int i = 0; i < vertices; i++) {
+            if (!visited[i]) {
+                dfs(i, visited, stack, graph.adjList);
+            }
+        }
+
+        // Step 2: Transpose the graph
+        List<List<Integer>> transpose = new ArrayList<>();
+        for (int i = 0; i < vertices; i++) {
+            transpose.add(new ArrayList<>());
+        }
+        for (int u = 0; u < vertices; u++) {
+            for (int v : graph.adjList.get(u)) {
+                transpose.get(v).add(u);
+            }
+        }
+
+        // Step 3: Perform DFS on the transposed graph
+        Arrays.fill(visited, false);
+        List<List<Integer>> sccs = new ArrayList<>();
+        while (!stack.isEmpty()) {
+            int node = stack.pop();
+            if (!visited[node]) {
+                List<Integer> scc = new ArrayList<>();
+                dfsOnTranspose(node, visited, transpose, scc);
+                sccs.add(scc);
+            }
+        }
+
+        return sccs;
+    }
+
+    private static void dfsOnTranspose(int node, boolean[] visited, List<List<Integer>> transpose, List<Integer> scc) {
+        visited[node] = true;
+        scc.add(node);
+        for (int neighbor : transpose.get(node)) {
+            if (!visited[neighbor]) {
+                dfsOnTranspose(neighbor, visited, transpose, scc);
+            }
+        }
+    }
+
+    private static void dfs(int node, boolean[] visited, Stack<Integer> stack, List<List<Integer>> graph) {
+        visited[node] = true;
+        for (int neighbor : graph.get(node)) {
+            if (!visited[neighbor]) {
+                dfs(neighbor, visited, stack, graph);
+            }
+        }
+        stack.push(node);
+    }
+
+    private static boolean hasCycle(int course, List<List<Integer>> graph, int[] visitStatus) {
+        // Mark the course as being visited (currently in the recursion stack)
+        visitStatus[course] = 1;
+
+        // Check all prerequisites of the current course
+        for (int prereq : graph.get(course)) {
+            if (visitStatus[prereq] == 1) {
+                // If the prerequisite is already in the recursion stack, a cycle is detected
+                return true;
+            }
+            if (visitStatus[prereq] == 0) {
+                // If the prerequisite is unvisited, explore it
+                if (hasCycle(prereq, graph, visitStatus)) {
+                    return true;
+                }
+            }
+        }
+
+        // Mark the course as fully visited (exit the recursion stack)
+        visitStatus[course] = 2;
+        return false;
+    }
+
+    private static void dfs(int[][] heights, boolean[][] reach, int i, int j) {
+        int m = heights.length;
+        int n = heights[0].length;
+
+        // If the cell is already visited, return
+        if (reach[i][j]) return;
+
+        // Mark the cell as reachable
+        reach[i][j] = true;
+
+        // Explore the neighboring cells (up, down, left, right)
+        int[] dirs = {-1, 0, 1, 0, -1}; // Directions: up, right, down, left
+        for (int d = 0; d < 4; d++) {
+            int ni = i + dirs[d];
+            int nj = j + dirs[d + 1];
+
+            if (ni >= 0 && nj >= 0 && ni < m && nj < n && heights[ni][nj] >= heights[i][j]) {
+                dfs(heights, reach, ni, nj);
+            }
         }
     }
     //endregion
