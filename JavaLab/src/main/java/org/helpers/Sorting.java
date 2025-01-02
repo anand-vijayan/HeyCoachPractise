@@ -16,9 +16,7 @@ public class Sorting {
         int[] rightArray = new int[sizeOfRightArr];
 
         //Fill data
-        for(int i = 0; i < sizeOfLeftArr; i++) {
-            leftArray[i] = inputArr[leftIndex + i];
-        }
+        System.arraycopy(inputArr, leftIndex, leftArray, 0, sizeOfLeftArr);
         for(int j = 0; j < sizeOfRightArr; j++) {
             rightArray[j] = inputArr[middleIndex + 1 + j];
         }
@@ -91,6 +89,47 @@ public class Sorting {
         }
 
         return result;
+    }
+
+    public static void MergeSort(int[] nums, int left, int right) {
+        if (left >= right) return;
+
+        int mid = left + (right - left) / 2;
+
+        MergeSort(nums, left, mid);
+        MergeSort(nums, mid + 1, right);
+
+        Merge(nums, left, mid, right);
+    }
+
+    public static void Merge(int[] nums, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+
+        int[] leftArray = new int[n1];
+        int[] rightArray = new int[n2];
+
+        System.arraycopy(nums, left, leftArray, 0, n1);
+        for (int i = 0; i < n2; ++i)
+            rightArray[i] = nums[mid + 1 + i];
+
+        int i = 0, j = 0, k = left;
+
+        while (i < n1 && j < n2) {
+            if (leftArray[i] <= rightArray[j]) {
+                nums[k++] = leftArray[i++];
+            } else {
+                nums[k++] = rightArray[j++];
+            }
+        }
+
+        while (i < n1) {
+            nums[k++] = leftArray[i++];
+        }
+
+        while (j < n2) {
+            nums[k++] = rightArray[j++];
+        }
     }
 
     public static int[] BubbleSort(int[] arr) {

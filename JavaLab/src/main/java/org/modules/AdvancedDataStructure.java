@@ -17,7 +17,7 @@ public class AdvancedDataStructure {
     private static int minDifference = Integer.MAX_VALUE;
     private static Integer prevValue = null;
     private static final List<Integer> values = new ArrayList<>();
-    private static List<Integer> medianData = new ArrayList<>();
+    private static final List<Integer> medianData = new ArrayList<>();
     //endregion
 
     //region Linked Lists 1
@@ -802,9 +802,199 @@ public class AdvancedDataStructure {
             return medianData.get(midIndex+1);
         }
     }
+
+    public static void HeapImplementation(int[] arr, int n) {
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i);
+        }
+    }
+
+    public static int KLargestUsingHeap(int[] arr, int N, int K) {
+        // Min-heap to store the k largest elements
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        // Iterate through the array
+        for (int num : arr) {
+            // Add the current number to the heap
+            minHeap.offer(num);
+
+            // If the heap size exceeds k, remove the smallest element
+            if (minHeap.size() > K) {
+                minHeap.poll();
+            }
+        }
+
+        // Calculate the sum of elements in the heap
+        int sum = 0;
+        while (!minHeap.isEmpty()) {
+            sum += minHeap.poll();
+        }
+
+        return sum;
+    }
+
+    public static int HackPrevention(String s) {
+        int n = s.length();
+        boolean hasLower = false, hasUpper = false, hasDigit = false;
+        int replace = 0, oneSequence = 0, twoSequence = 0;
+
+        // Check for character requirements
+        for (char c : s.toCharArray()) {
+            if (Character.isLowerCase(c)) hasLower = true;
+            if (Character.isUpperCase(c)) hasUpper = true;
+            if (Character.isDigit(c)) hasDigit = true;
+        }
+
+        // Count missing categories
+        int missingTypes = (hasLower ? 0 : 1) + (hasUpper ? 0 : 1) + (hasDigit ? 0 : 1);
+
+        // Handle repeating characters
+        for (int i = 2; i < n; ) {
+            if (s.charAt(i) == s.charAt(i - 1) && s.charAt(i) == s.charAt(i - 2)) {
+                int length = 2;
+                while (i < n && s.charAt(i) == s.charAt(i - 1)) {
+                    length++;
+                    i++;
+                }
+
+                replace += length / 3; // Number of replacements required
+                if (length % 3 == 0) oneSequence++;
+                else if (length % 3 == 1) twoSequence++;
+            } else {
+                i++;
+            }
+        }
+
+        // Case 1: If the length is too short
+        if (n < 6) {
+            return Math.max(6 - n, missingTypes);
+        }
+
+        // Case 2: If the length is valid
+        if (n <= 20) {
+            return Math.max(replace, missingTypes);
+        }
+
+        // Case 3: If the length is too long
+        int excessLength = n - 20;
+
+        // Use deletions to optimize replacements
+        replace -= Math.min(excessLength, oneSequence);
+        replace -= Math.min(Math.max(0, excessLength - oneSequence), twoSequence * 2) / 2;
+        replace -= Math.max(0, excessLength - oneSequence - 2 * twoSequence) / 3;
+
+        return excessLength + Math.max(replace, missingTypes);
+
+    }
+
+    public static int StoneSmash(int[] stones) {
+        // Create a max heap by using a priority queue with reversed order (max heap)
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+
+        // Add all stones to the max heap
+        for (int stone : stones) {
+            maxHeap.add(stone);
+        }
+
+        // Keep smashing stones until one or zero stones remain
+        while (maxHeap.size() > 1) {
+            // Extract the two largest stones
+            int stone1 = maxHeap.poll();
+            int stone2 = maxHeap.poll();
+
+            // If the stones are not the same, push the difference back into the heap
+            if (stone1 != stone2) {
+                maxHeap.add(stone1 - stone2);
+            }
+        }
+
+        // If there are no stones left, return 0, otherwise return the last stone's weight
+        return maxHeap.isEmpty() ? 0 : maxHeap.poll();
+
+    }
     //endregion
 
     //region Graphs 1
+    public static double[] calcEquation(List<List<String>> equations, List<Double> values, List<List<String>> queries) {
+        UnionFind uf = new UnionFind();
+
+        // Initialize union-find structure and process equations
+        for (List<String> equation : equations) {
+            String a = equation.get(0);
+            String b = equation.get(1);
+            uf.add(a);
+            uf.add(b);
+        }
+
+        for (int i = 0; i < equations.size(); i++) {
+            String a = equations.get(i).get(0);
+            String b = equations.get(i).get(1);
+            uf.union(a, b, values.get(i));
+        }
+
+        // Process queries and store results
+        double[] result = new double[queries.size()];
+
+        for (int i = 0; i < queries.size(); i++) {
+            String c = queries.get(i).get(0);
+            String d = queries.get(i).get(1);
+
+            if (!uf.parent.containsKey(c) || !uf.parent.containsKey(d) || !uf.find(c).equals(uf.find(d))) {
+                result[i] = -1.0;
+            } else {
+                result[i] = uf.weight.get(c) / uf.weight.get(d);
+            }
+        }
+
+        return result;
+
+    }
+
+    public static int shortestPath(int N, int[][] edges, int S, int D) {
+        int E = edges.length;
+        // Step 1: Build the graph as an adjacency list
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+
+        for (int i = 0; i < E; i++) {
+            int u = edges[i][0];
+            int v = edges[i][1];
+            graph.putIfAbsent(u, new ArrayList<>());
+            graph.putIfAbsent(v, new ArrayList<>());
+            graph.get(u).add(v);
+            graph.get(v).add(u);  // Because the graph is undirected
+        }
+
+        // Step 2: BFS initialization
+        Queue<Integer> queue = new LinkedList<>();
+        int[] distance = new int[N];
+        Arrays.fill(distance, -1);  // -1 means unvisited
+        distance[S] = 0;  // Distance to source is 0
+
+        queue.offer(S);
+
+        // Step 3: BFS to find the shortest path
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+
+            // Check all neighbors of the current node
+            for (int neighbor : graph.get(current)) {
+                if (distance[neighbor] == -1) {  // If neighbor hasn't been visited
+                    distance[neighbor] = distance[current] + 1;
+                    queue.offer(neighbor);
+
+                    // If we reached the destination node, return the distance
+                    if (neighbor == D) {
+                        return distance[neighbor];
+                    }
+                }
+            }
+        }
+
+        // If destination D is not reachable, return -1 (though the graph is connected)
+        return -1;
+
+
+    }
     //endregion
 
     //region Graphs 2
@@ -1333,6 +1523,32 @@ public class AdvancedDataStructure {
         }
 
         return count;
+    }
+
+    private static void heapify(int[] arr, int n, int i) {
+        int largest = i; // Initialize largest as root
+        int left = 2 * i + 1; // Left child index
+        int right = 2 * i + 2; // Right child index
+
+        // Check if left child is larger than root
+        if (left < n && arr[left] > arr[largest]) {
+            largest = left;
+        }
+
+        // Check if right child is larger than the current largest
+        if (right < n && arr[right] > arr[largest]) {
+            largest = right;
+        }
+
+        // Swap and continue heapifying if root is not the largest
+        if (largest != i) {
+            int temp = arr[i];
+            arr[i] = arr[largest];
+            arr[largest] = temp;
+
+            // Recursively heapify the affected subtree
+            heapify(arr, n, largest);
+        }
     }
     //endregion
 }
