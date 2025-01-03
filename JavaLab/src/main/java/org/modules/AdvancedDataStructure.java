@@ -1332,60 +1332,111 @@ public class AdvancedDataStructure {
 
     public static List<Integer> MinimumHeightTree(int n, int[][] edges) {
         if (n == 1) {
-            return Arrays.asList(0);  // If there's only one node, it's the root
+            return Collections.singletonList(0); // Single node is trivially an MHT.
         }
 
-        // Step 1: Build the adjacency list from edges
-        List<List<Integer>> adjList = new ArrayList<>();
+        // Build adjacency list
+        List<Set<Integer>> adj = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            adjList.add(new ArrayList<>());
+            adj.add(new HashSet<>());
         }
         for (int[] edge : edges) {
-            adjList.get(edge[0]).add(edge[1]);
-            adjList.get(edge[1]).add(edge[0]);
+            adj.get(edge[0]).add(edge[1]);
+            adj.get(edge[1]).add(edge[0]);
         }
 
-        // Step 2: Find the farthest node from an arbitrary node (e.g., node 0)
-        int[] resultFromFirstBFS = bfs(0, n, adjList);
-        int farthestNode = resultFromFirstBFS[0];  // Farthest node from node 0
+        // Find initial leaves
+        Queue<Integer> leaves = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            if (adj.get(i).size() == 1) {
+                leaves.add(i);
+            }
+        }
 
-        // Step 3: Find the farthest node from the farthest node (this gives us the diameter)
-        int[] resultFromSecondBFS = bfs(farthestNode, n, adjList);
-        int otherEnd = resultFromSecondBFS[0];  // Farthest node from 'farthestNode'
-        int diameter = resultFromSecondBFS[1];  // The diameter of the tree
+        // Trim the leaves until 2 or fewer nodes remain
+        int remainingNodes = n;
+        while (remainingNodes > 2) {
+            int leafCount = leaves.size();
+            remainingNodes -= leafCount;
 
-        // Step 4: The centers of the tree are at the middle of the path from 'farthestNode' to 'otherEnd'
-        List<Integer> centers = new ArrayList<>();
-        Queue<Integer> queue = new LinkedList<>();
-        int[] dist = new int[n];
-        Arrays.fill(dist, -1);
-        dist[farthestNode] = 0;
-        queue.offer(farthestNode);
+            for (int i = 0; i < leafCount; i++) {
+                int leaf = leaves.poll();
+                int neighbor = adj.get(leaf).iterator().next();
+                adj.get(neighbor).remove(leaf);
 
-        // BFS to find the centers (the middle of the longest path)
-        while (!queue.isEmpty()) {
-            int node = queue.poll();
-            for (int neighbor : adjList.get(node)) {
-                if (dist[neighbor] == -1) {
-                    dist[neighbor] = dist[node] + 1;
-                    queue.offer(neighbor);
+                if (adj.get(neighbor).size() == 1) {
+                    leaves.add(neighbor);
                 }
             }
         }
 
-        // Collect the centers, which are the nodes around the middle of the longest path
-        int midDistance = diameter / 2;
+        // Remaining nodes are the roots of MHTs
+        return new ArrayList<>(leaves);
+    }
+
+    public static boolean GraphValidTree(List<List<Integer>> edges, int n, int m) {
+        // A tree must have exactly n - 1 edges
+        if (edges.size() != n - 1) {
+            return false;
+        }
+
+        // Union-Find data structure
+        int[] parent = new int[n];
         for (int i = 0; i < n; i++) {
-            if (dist[i] == midDistance || dist[i] == midDistance + 1) {
-                centers.add(i);
+            parent[i] = i;
+        }
+
+        // Process all edges
+        for (List<Integer> edge : edges) {
+            if (!union(edge.get(0), edge.get(1), parent)) {
+                return false; // Cycle detected
             }
         }
 
-        return centers;
+        // Check if the graph is connected
+        int root = find(0, parent);
+        for (int i = 1; i < n; i++) {
+            if (find(i, parent) != root) {
+                return false; // Not all nodes are connected
+            }
+        }
+
+        return true;
+    }
+
+    public static List<Integer> FindEventualSafeStates(int V, List<List<Integer>> edges) {
+        int[] visited = new int[V];  // States: 0 = unvisited, 1 = visiting, 2 = safe
+        List<Integer> safeNodes = new ArrayList<>();
+
+        int[][] graph = getArray(edges);
+
+        // DFS function to check if a node is safe
+        for (int i = 0; i < V; i++) {
+            if (dfs(graph, i, visited)) {
+                safeNodes.add(i);
+            }
+        }
+
+        // Return the result sorted (ascending order)
+        Collections.sort(safeNodes);
+        return safeNodes;
     }
     //endregion
 
     //region Private Methods
+    private static int[][] getArray(List<List<Integer>> list) {
+        int[][] array = new int[list.size()][];
+
+        for (int i = 0; i < list.size(); i++) {
+            List<Integer> sublist = list.get(i);
+            array[i] = new int[sublist.size()];
+
+            for (int j = 0; j < sublist.size(); j++) {
+                array[i][j] = sublist.get(j);
+            }
+        }
+        return array;
+    }
     private static int[] bfs(int start, int n, List<List<Integer>> adjList) {
         int[] dist = new int[n];
         Arrays.fill(dist, -1);
@@ -1437,6 +1488,18 @@ public class AdvancedDataStructure {
                 rank[rootX]++;
             }
         }
+    }
+
+    private static boolean union(int node1, int node2, int[] parent) {
+        int root1 = find(node1, parent);
+        int root2 = find(node2, parent);
+
+        if (root1 == root2) {
+            return false; // Cycle detected
+        }
+
+        parent[root2] = root1; // Union the two sets
+        return true;
     }
 
     private static int getLength(ListNode head) {
@@ -2205,6 +2268,31 @@ public class AdvancedDataStructure {
                 dfs(heights, reach, ni, nj);
             }
         }
+    }
+
+    private static boolean dfs(int[][] graph, int node, int[] visited) {
+        if (visited[node] == 1) {
+            // If node is in visiting state, we've found a cycle
+            return false;
+        }
+        if (visited[node] == 2) {
+            // If node is already safe, return true
+            return true;
+        }
+
+        // Mark node as visiting (in DFS stack)
+        visited[node] = 1;
+
+        // Explore all neighbors
+        for (int neighbor : graph[node]) {
+            if (!dfs(graph, neighbor, visited)) {
+                return false;  // If any neighbor is unsafe, current node is unsafe
+            }
+        }
+
+        // Mark node as safe after exploring all neighbors
+        visited[node] = 2;
+        return true;
     }
     //endregion
 }
